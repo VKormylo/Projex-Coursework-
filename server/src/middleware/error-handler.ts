@@ -21,10 +21,23 @@ function mapPrismaKnownError(err: Prisma.PrismaClientKnownRequestError): {
 } {
   switch (err.code) {
     case "P2002": {
-      const target = Array.isArray(err.meta?.target)
-        ? (err.meta?.target as string[]).join(", ")
-        : String(err.meta?.target ?? "field");
-      return { status: 409, message: `Unique constraint failed on: ${target}` };
+      const fields: string[] = Array.isArray(err.meta?.target)
+        ? (err.meta.target as string[])
+        : [String(err.meta?.target ?? "")];
+
+      const FIELD_MESSAGES: Record<string, string> = {
+        email:      "Користувач з таким email вже існує",
+        name:       "Запис з такою назвою вже існує",
+        key:        "Проект з таким ключем вже існує",
+        version:    "Реліз з такою версією вже існує для цього проєкту",
+        sprint_id:  "До цього спринту вже прив'язаний реліз",
+      };
+
+      const msg = fields.reduce<string | null>((found, f) => {
+        return found ?? (FIELD_MESSAGES[f] ?? null);
+      }, null);
+
+      return { status: 409, message: msg ?? "Запис з такими даними вже існує" };
     }
     case "P2003":
       return { status: 400, message: "Foreign key constraint failed" };

@@ -56,6 +56,7 @@ export default function SprintFormDialog({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<SprintFormValues>({
     resolver: zodResolver(schema),
@@ -145,6 +146,7 @@ export default function SprintFormDialog({
               {...register("startDate")}
               type="date"
               min={new Date().toISOString().slice(0, 10)}
+              max={watch("endDate") || undefined}
               className={inputClass}
             />
             {errors.startDate ? (
@@ -156,7 +158,7 @@ export default function SprintFormDialog({
             <input
               {...register("endDate")}
               type="date"
-              min={new Date().toISOString().slice(0, 10)}
+              min={watch("startDate") || new Date().toISOString().slice(0, 10)}
               className={inputClass}
             />
             {errors.endDate ? (

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ResponseError } from "~/exceptions/response-error";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,6 +53,10 @@ function hasRole(user: { role?: { name: string } | null }, roleName: string) {
 }
 
 type TabId = "users" | "teams";
+
+function mutErrMsg(err: unknown, fallback: string) {
+  return err instanceof ResponseError ? err.message : fallback;
+}
 
 // ─── shared sub-components ────────────────────────────────────────────────────
 
@@ -206,7 +211,7 @@ function CreateUserDialog({
             </select>
           </div>
           {createMut.isError && (
-            <p className="text-red-500 text-sm">Помилка при створенні</p>
+            <p className="text-red-500 text-sm">{mutErrMsg(createMut.error, "Помилка при створенні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button
@@ -320,7 +325,7 @@ function EditUserDialog({
             </select>
           </div>
           {updateMut.isError && (
-            <p className="text-red-500 text-sm">Помилка при оновленні</p>
+            <p className="text-red-500 text-sm">{mutErrMsg(updateMut.error, "Помилка при оновленні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button
@@ -453,7 +458,7 @@ function AddMemberDialog({
           )}
 
           {addMut.isError && (
-            <p className="text-red-500 text-sm">Помилка при додаванні</p>
+            <p className="text-red-500 text-sm">{mutErrMsg(addMut.error, "Помилка при додаванні")}</p>
           )}
 
           <div className="flex justify-end gap-3 pt-1">
@@ -533,7 +538,7 @@ function TeamDialog({
             )}
           </div>
           {saveMut.isError && (
-            <p className="text-red-500 text-sm">Помилка при збереженні</p>
+            <p className="text-red-500 text-sm">{mutErrMsg(saveMut.error, "Помилка при збереженні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-1">
             <Button
