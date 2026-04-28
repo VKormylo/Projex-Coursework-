@@ -1,0 +1,195 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  planned
+  active
+  on_hold
+  completed
+  archived
+}
+
+enum SprintStatus {
+  planned
+  active
+  closed
+  cancelled
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  in_review
+  done
+  blocked
+}
+
+model User {
+  id           BigInt        @id @default(autoincrement())
+  fullName     String        @map("full_name") @db.VarChar(150)
+  email        String        @unique @db.VarChar(255)
+  passwordHash String        @map("password_hash") @db.VarChar(255)
+  position     String        @default("") @db.VarChar(100)
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  roleId       Int?          @map("role_id") @db.SmallInt
+  role         Role?         @relation(fields: [roleId], references: [id])
+  teamMembers  TeamMember[]
+  assigned     Task[]        @relation("TaskAssignee")
+  reported     Task[]        @relation("TaskReporter")
+  comments     TaskComment[]
+  createdProj  Project[]
+  history      TaskHistory[]
+
+  @@map("users")
+}
+
+model Role {
+  id          Int     @id @default(autoincrement()) @db.SmallInt
+  name        String  @unique @db.VarChar(50)
+  description String? @db.VarChar(255)
+  users       User[]
+
+  @@map("roles")
+}
+
+model Team {
+  id         BigInt       @id @default(autoincrement())
+  name       String       @unique @db.VarChar(120)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  projects   Project[]
+  teamMember TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId   BigInt   @map("team_id")
+  userId   BigInt   @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("team_members")
+}
+
+model Project {
+  id          BigInt        @id @default(autoincrement())
+  teamId      BigInt        @map("team_id")
+  name        String        @db.VarChar(180)
+  description String?
+  startDate   DateTime?     @map("start_date") @db.Date
+  endDate     DateTime?     @map("end_date") @db.Date
+  status      ProjectStatus
+  createdBy   BigInt        @map("created_by")
+  team        Team          @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  creator     User          @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  sprints     Sprint[]
+  tasks       Task[]
+  releases    Release[]
+
+  @@unique([teamId, name])
+  @@map("projects")
+}
+
+model Sprint {
+  id        BigInt       @id @default(autoincrement())
+  projectId BigInt       @map("project_id")
+  name      String       @db.VarChar(120)
+  startDate DateTime     @map("start_date") @db.Date
+  endDate   DateTime     @map("end_date") @db.Date
+  goal      String?
+  status    SprintStatus
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  release   Release?
+
+  @@unique([projectId, name])
+  @@map("sprints")
+}
+
+model Task {
+  id          BigInt        @id @default(autoincrement())
+  projectId   BigInt        @map("project_id")
+  sprintId    BigInt?       @map("sprint_id")
+  title       String        @db.VarChar(220)
+  description String?
+  priority    TaskPriority
+  status      TaskStatus
+  storyPoint  Int?          @map("story_point")
+  assigneeId  BigInt?       @map("assignee_id")
+  reporterId  BigInt        @map("reporter_id")
+  dueDate     DateTime?     @map("due_date") @db.Date
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint      Sprint?       @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  assignee    User?         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reporter    User          @relation("TaskReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  comments    TaskComment[]
+  history     TaskHistory[]
+
+  @@index([projectId, status], map: "idx_tasks_project_status")
+  @@index([assigneeId, status], map: "idx_tasks_assignee_status")
+  @@index([sprintId], map: "idx_tasks_sprint_id")
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        BigInt   @id @default(autoincrement())
+  taskId    BigInt   @map("task_id")
+  authorId  BigInt   @map("author_id")
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@map("task_comments")
+}
+
+model Release {
+  id          BigInt   @id @default(autoincrement())
+  projectId   BigInt   @map("project_id")
+  sprintId    BigInt?  @unique @map("sprint_id")
+  version     String   @db.VarChar(30)
+  name        String   @default("") @db.VarChar(180)
+  releaseDate DateTime @map("release_date") @db.Date
+  notes       String?
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint      Sprint?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, version])
+  @@map("releases")
+}
+
+model TaskHistory {
+  id        BigInt     @id @default(autoincrement())
+  taskId    BigInt     @map("task_id")
+  changedBy BigInt     @map("changed_by")
+  oldStatus TaskStatus @map("old_status")
+  newStatus TaskStatus @map("new_status")
+  changedAt DateTime   @default(now()) @map("changed_at") @db.Timestamptz
+  task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [changedBy], references: [id], onDelete: Restrict)
+
+  @@index([taskId, changedAt], map: "idx_task_history_task_changed_at")
+  @@map("task_history")
+}

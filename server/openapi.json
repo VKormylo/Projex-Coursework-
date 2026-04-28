@@ -1,0 +1,1225 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Projex API",
+    "version": "1.0.0",
+    "description": "REST API для курсового проєкту: команди, проєкти, спринти, задачі, релізи. Успішні відповіді: `{ \"status\": \"success\", \"data\": { ... } }` або з полем `message`. Помилки: `{ \"status\": \"fail\" | \"error\", \"message\": \"...\" }`. Ідентифікатори BigInt у JSON серіалізуються як рядки."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Локальний сервер (за замовчуванням PORT=8000 у .env)"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Перевірка доступності" },
+    { "name": "Auth", "description": "Реєстрація та вхід (без JWT)" },
+    { "name": "Roles", "description": "Ролі (JWT)" },
+    { "name": "Users", "description": "Користувачі (JWT, переважно Admin)" },
+    { "name": "Teams", "description": "Команди (JWT)" },
+    { "name": "Projects", "description": "Проєкти (JWT)" },
+    { "name": "Sprints", "description": "Спринти (JWT)" },
+    { "name": "Tasks", "description": "Задачі (JWT)" },
+    { "name": "Comments", "description": "Коментарі до задач (JWT)" },
+    { "name": "Releases", "description": "Релізи (JWT)" },
+    { "name": "Analytics", "description": "Агрегати з представлень БД (JWT); PDF — заглушка" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Токен з `POST /api/auth/login` або `/api/auth/register`. Формат: `Authorization: Bearer <token>`"
+      }
+    },
+    "schemas": {
+      "ProjectStatus": {
+        "type": "string",
+        "enum": ["planned", "active", "on_hold", "completed", "archived"]
+      },
+      "SprintStatus": {
+        "type": "string",
+        "enum": ["planned", "active", "closed", "cancelled"]
+      },
+      "TaskPriority": {
+        "type": "string",
+        "enum": ["low", "medium", "high", "critical"]
+      },
+      "TaskStatus": {
+        "type": "string",
+        "enum": ["todo", "in_progress", "in_review", "done", "blocked"]
+      },
+      "AppRole": {
+        "type": "string",
+        "enum": ["Admin", "Project Manager", "Developer"],
+        "description": "Роль облікового запису (вибір при реєстрації згідно з макетом)"
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["status", "message"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["fail", "error"],
+            "description": "`fail` — 4xx, `error` — 5xx"
+          },
+          "message": { "type": "string" }
+        }
+      },
+      "AuthRegisterRequest": {
+        "type": "object",
+        "required": [
+          "fullName",
+          "email",
+          "password",
+          "confirmPassword",
+          "role"
+        ],
+        "properties": {
+          "fullName": { "type": "string", "minLength": 2, "maxLength": 150 },
+          "email": { "type": "string", "format": "email", "maxLength": 255 },
+          "password": { "type": "string", "minLength": 8, "maxLength": 128 },
+          "confirmPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "description": "Має збігатися з password"
+          },
+          "role": { "$ref": "#/components/schemas/AppRole" }
+        },
+        "description": "Посада (position) не передається при реєстрації — заповнюється в профілі користувача"
+      },
+      "AuthLoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8, "maxLength": 128 }
+        }
+      },
+      "AuthSuccess": {
+        "type": "object",
+        "required": ["status", "data"],
+        "properties": {
+          "status": { "type": "string", "enum": ["success"] },
+          "data": {
+            "type": "object",
+            "required": ["token", "userId"],
+            "properties": {
+              "token": { "type": "string" },
+              "userId": {
+                "type": "string",
+                "description": "ID користувача (рядок)"
+              }
+            }
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "required": ["fullName", "email", "password", "position"],
+        "properties": {
+          "fullName": { "type": "string", "minLength": 2, "maxLength": 150 },
+          "email": { "type": "string", "format": "email" },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "description": "Сервер хешує пароль перед збереженням"
+          },
+          "position": { "type": "string", "minLength": 2, "maxLength": 100 }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "required": ["status", "data"],
+        "properties": {
+          "status": { "type": "string", "enum": ["success"] },
+          "data": {
+            "type": "object",
+            "required": ["user"],
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "fullName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "position": { "type": "string" },
+                  "isActive": { "type": "boolean" },
+                  "createdAt": { "type": "string", "format": "date-time" },
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer" },
+                        "name": { "type": "string" },
+                        "description": { "type": "string", "nullable": true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AssignRoleRequest": {
+        "type": "object",
+        "required": ["roleId"],
+        "properties": {
+          "roleId": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "CreateTeamRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 120 }
+        }
+      },
+      "AddTeamMemberRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": { "type": "string", "pattern": "^\\d+$" }
+        }
+      },
+      "CreateProjectRequest": {
+        "type": "object",
+        "required": ["teamId", "name", "status", "createdBy"],
+        "properties": {
+          "teamId": { "type": "string", "pattern": "^\\d+$" },
+          "name": { "type": "string", "minLength": 2, "maxLength": 180 },
+          "description": { "type": "string" },
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "status": { "$ref": "#/components/schemas/ProjectStatus" },
+          "createdBy": { "type": "string", "pattern": "^\\d+$" }
+        }
+      },
+      "UpdateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "teamId": { "type": "string", "pattern": "^\\d+$" },
+          "name": { "type": "string", "minLength": 2, "maxLength": 180 },
+          "description": { "type": "string" },
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "status": { "$ref": "#/components/schemas/ProjectStatus" },
+          "createdBy": { "type": "string", "pattern": "^\\d+$" }
+        },
+        "description": "Усі поля опціональні (часткове оновлення)"
+      },
+      "CreateSprintRequest": {
+        "type": "object",
+        "required": ["projectId", "name", "startDate", "endDate", "status"],
+        "properties": {
+          "projectId": { "type": "string", "pattern": "^\\d+$" },
+          "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "goal": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/SprintStatus" }
+        }
+      },
+      "CreateTaskRequest": {
+        "type": "object",
+        "required": ["projectId", "title", "priority", "status", "reporterId"],
+        "properties": {
+          "projectId": { "type": "string", "pattern": "^\\d+$" },
+          "sprintId": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d+$",
+            "description": "Опційно; omit або null — без спринту"
+          },
+          "title": { "type": "string", "minLength": 2, "maxLength": 220 },
+          "description": { "type": "string" },
+          "priority": { "$ref": "#/components/schemas/TaskPriority" },
+          "status": { "$ref": "#/components/schemas/TaskStatus" },
+          "storyPoint": { "type": "integer", "minimum": 0 },
+          "assigneeId": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d+$"
+          },
+          "reporterId": { "type": "string", "pattern": "^\\d+$" },
+          "dueDate": { "type": "string", "format": "date" }
+        }
+      },
+      "UpdateTaskStatusRequest": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "$ref": "#/components/schemas/TaskStatus" }
+        }
+      },
+      "CreateCommentRequest": {
+        "type": "object",
+        "description": "Автор коментаря — поточний користувач за токеном",
+        "required": ["taskId", "body"],
+        "properties": {
+          "taskId": { "type": "string", "pattern": "^\\d+$" },
+          "body": { "type": "string", "minLength": 1 }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "minProperties": 1,
+        "properties": {
+          "fullName": { "type": "string", "minLength": 2, "maxLength": 150 },
+          "position": { "type": "string", "maxLength": 100 }
+        }
+      },
+      "PatchUserAdminRequest": {
+        "type": "object",
+        "minProperties": 1,
+        "properties": {
+          "fullName": { "type": "string", "minLength": 2, "maxLength": 150 },
+          "position": { "type": "string", "maxLength": 100 },
+          "email": { "type": "string", "format": "email" },
+          "isActive": { "type": "boolean" }
+        }
+      },
+      "UpdateTaskRequest": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 2, "maxLength": 220 },
+          "description": { "type": "string", "nullable": true },
+          "priority": { "$ref": "#/components/schemas/TaskPriority" },
+          "storyPoint": { "type": "integer", "minimum": 0, "nullable": true },
+          "sprintId": { "type": "string", "nullable": true, "pattern": "^\\d+$" },
+          "assigneeId": { "type": "string", "nullable": true, "pattern": "^\\d+$" },
+          "dueDate": { "type": "string", "format": "date", "nullable": true }
+        },
+        "description": "Часткове оновлення (без status — окремий PATCH .../status)"
+      },
+      "UpdateSprintRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "goal": { "type": "string", "nullable": true },
+          "status": { "$ref": "#/components/schemas/SprintStatus" }
+        }
+      },
+      "UpdateTeamRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "maxLength": 120 }
+        }
+      },
+      "CreateReleaseFromSprintRequest": {
+        "type": "object",
+        "required": ["sprintId", "version"],
+        "properties": {
+          "sprintId": { "type": "string", "pattern": "^\\d+$" },
+          "version": { "type": "string", "minLength": 1, "maxLength": 30 }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["success"] },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": { "type": "boolean", "example": true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Реєстрація",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthRegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Створено, JWT у відповіді",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccess" }
+              }
+            }
+          },
+          "400": {
+            "description": "Валідація",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Email вже зайнятий",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Поточний користувач",
+        "description": "Повертає профіль поточного користувача + ролі (за токеном).",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Неавторизовано",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Auth"],
+        "summary": "Оновити профіль",
+        "description": "ПІБ та/або посада (position).",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Неавторизовано",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Вхід",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthLoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccess" }
+              }
+            }
+          },
+          "401": {
+            "description": "Невірні облікові дані",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles": {
+      "get": {
+        "tags": ["Roles"],
+        "summary": "Список ролей",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["success"] },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Неавторизовано",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Список користувачів",
+        "description": "Лише **Admin**",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Недостатньо прав",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Створити користувача",
+        "description": "Лише **Admin**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateUserRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" },
+          "400": {
+            "description": "Валідація",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Оновити користувача (адмін)",
+        "description": "Лише **Admin**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchUserAdminRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Оновлено" },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}/roles": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Призначити роль користувачу",
+        "description": "Лише **Admin**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" },
+            "description": "User id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AssignRoleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Призначено" },
+          "404": {
+            "description": "Роль не знайдена",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Список команд",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "post": {
+        "tags": ["Teams"],
+        "summary": "Створити команду",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTeamRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{id}": {
+      "patch": {
+        "tags": ["Teams"],
+        "summary": "Перейменувати команду",
+        "description": "**Admin** або **Project Manager** (учасник команди)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTeamRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/teams/{id}/members": {
+      "post": {
+        "tags": ["Teams"],
+        "summary": "Додати учасника до команди",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" },
+            "description": "Team id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddTeamMemberRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Учасник доданий" }
+        }
+      }
+    },
+    "/api/teams/{id}/members/{userId}": {
+      "delete": {
+        "tags": ["Teams"],
+        "summary": "Видалити учасника з команди",
+        "description": "**Admin** або **Project Manager** (учасник команди)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Видалено; data: null" }
+        }
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Список проєктів",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Створити проєкт",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProjectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" }
+        }
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Проєкт за id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "403": {
+            "description": "Немає доступу до проєкту",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Оновити проєкт",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProjectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Оновлено" }
+        }
+      }
+    },
+    "/api/sprints": {
+      "get": {
+        "tags": ["Sprints"],
+        "summary": "Список спринтів",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "post": {
+        "tags": ["Sprints"],
+        "summary": "Створити спринт",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateSprintRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" }
+        }
+      }
+    },
+    "/api/sprints/{id}": {
+      "patch": {
+        "tags": ["Sprints"],
+        "summary": "Оновити спринт",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateSprintRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/sprints/{id}/close": {
+      "post": {
+        "tags": ["Sprints"],
+        "summary": "Закрити спринт",
+        "description": "**Admin** або **Project Manager**. Тіло відповіді: `data: null`",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Закрито" }
+        }
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Список задач (фільтри в query)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          },
+          {
+            "name": "sprintId",
+            "in": "query",
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/TaskStatus" }
+          },
+          {
+            "name": "assigneeId",
+            "in": "query",
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/TaskPriority" }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Пошук у title/description (case-insensitive)"
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "post": {
+        "tags": ["Tasks"],
+        "summary": "Створити задачу",
+        "description": "**Admin**, **Project Manager** або **Developer**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" }
+        }
+      }
+    },
+    "/api/tasks/{id}": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Задача за id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Не знайдено" }
+        }
+      },
+      "patch": {
+        "tags": ["Tasks"],
+        "summary": "Оновити поля задачі (без status)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTaskRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "delete": {
+        "tags": ["Tasks"],
+        "summary": "Видалити задачу",
+        "description": "Лише **Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "data: null" }
+        }
+      }
+    },
+    "/api/tasks/{id}/history": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Історія змін статусу задачі",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/tasks/{id}/status": {
+      "patch": {
+        "tags": ["Tasks"],
+        "summary": "Змінити статус задачі",
+        "description": "Перевірка переходів статусів на сервері. **Admin**, **Project Manager** або **Developer**",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Оновлено" },
+          "400": {
+            "description": "Недопустимий перехід статусу",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Задача не знайдена",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comments/task/{taskId}": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "Коментарі задачі",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d+$" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/comments": {
+      "post": {
+        "tags": ["Comments"],
+        "summary": "Додати коментар",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCommentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Створено" }
+        }
+      }
+    },
+    "/api/releases": {
+      "get": {
+        "tags": ["Releases"],
+        "summary": "Список релізів",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/releases/from-sprint": {
+      "post": {
+        "tags": ["Releases"],
+        "summary": "Створити реліз зі спринту (stored procedure)",
+        "description": "**Admin** або **Project Manager**",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReleaseFromSprintRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Без `data`, лише `message`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["success"] },
+                    "message": {
+                      "type": "string",
+                      "example": "Release created"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/project-summary": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Зведення по проєктах (vw_project_task_summary)",
+        "description": "Рядки обмежені проєктами доступними користувачу (крім Admin).",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "data.summary — масив записів з БД" }
+        }
+      }
+    },
+    "/api/analytics/sprint-velocity": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Velocity по спринтах (vw_sprint_velocity)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "data.velocity — масив записів з БД" }
+        }
+      }
+    },
+    "/api/analytics/report.pdf": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Експорт PDF (заглушка)",
+        "description": "Повертає 501; використовуйте JSON-ендпоінти аналітики.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "501": {
+            "description": "Not implemented",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
