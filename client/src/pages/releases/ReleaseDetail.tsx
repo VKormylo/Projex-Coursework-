@@ -111,6 +111,7 @@ export default function ReleaseDetail() {
 
   const tasks = release.sprint?.tasks ?? [];
   const doneCount = tasks.filter((t) => t.status === "done").length;
+  const allDone = tasks.length === 0 || doneCount === tasks.length;
   const storyPointsTotal = tasks.reduce((s, t) => s + (t.storyPoint ?? 0), 0);
 
   return (
@@ -165,6 +166,8 @@ export default function ReleaseDetail() {
               type="button"
               variant="outlined"
               onClick={() => completeMut.mutate()}
+              disabled={!allDone}
+              title={!allDone ? `Не всі задачі виконано (${doneCount}/${tasks.length})` : undefined}
             >
               Випустити
             </Button>

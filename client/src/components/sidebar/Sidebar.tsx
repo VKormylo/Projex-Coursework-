@@ -3,28 +3,28 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuthContext } from "~/context/authContext";
 import { useClickOutside } from "~/hooks/useClickOutside";
+import AdministrationIcon from "~/assets/icons/administration.svg?react";
+import AnalyticsIcon from "~/assets/icons/analytics.svg?react";
+import DashboardIcon from "~/assets/icons/dashboard.svg?react";
+import MyTasksIcon from "~/assets/icons/my-tasks.svg?react";
+import ProjectsIcon from "~/assets/icons/projects.svg?react";
+import ReleasesIcon from "~/assets/icons/releases.svg?react";
+import SprintsIcon from "~/assets/icons/sprints.svg?react";
 import {
-  AdminIcon,
-  AnalyticsIcon,
-  BoardIcon,
   LogoIcon,
-  MyTasksIcon,
-  ProjectsNavIcon,
-  ReleasesIcon,
-  SprintsIcon,
   UserIcon,
   ChevronRightIcon,
 } from "~/components/svg/Svg";
 import SidebarLink from "./SidebarLink";
 
 const NAV = [
-  { to: "/projects", icon: <ProjectsNavIcon />, label: "Проєкти" },
+  { to: "/projects", icon: <ProjectsIcon />, label: "Проєкти" },
   { to: "/sprints", icon: <SprintsIcon />, label: "Спринти" },
-  { to: "/board", icon: <BoardIcon />, label: "Дошка задач" },
+  { to: "/board", icon: <DashboardIcon />, label: "Дошка задач" },
   { to: "/my-tasks", icon: <MyTasksIcon />, label: "Мої задачі" },
   { to: "/releases", icon: <ReleasesIcon />, label: "Релізи" },
   { to: "/analytics", icon: <AnalyticsIcon />, label: "Аналітика" },
-  { to: "/admin", icon: <AdminIcon />, label: "Адміністрування" },
+  { to: "/admin", icon: <AdministrationIcon />, label: "Адміністрування" },
 ];
 
 function initials(name: string) {

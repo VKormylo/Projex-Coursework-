@@ -40,9 +40,11 @@ function StatusBadge({ status }: { status: "planned" | "released" }) {
 function MoreMenu({
   onEdit,
   onDelete,
+  canEdit = true,
 }: {
   onEdit: () => void;
   onDelete: () => void;
+  canEdit?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -63,16 +65,18 @@ function MoreMenu({
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                onEdit();
-              }}
-              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-[#0f172b] hover:bg-[#f8fafc]"
-            >
-              Редагувати
-            </button>
+            {canEdit ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onEdit();
+                }}
+                className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-[#0f172b] hover:bg-[#f8fafc]"
+              >
+                Редагувати
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -201,6 +205,7 @@ function ReleaseCard({
           <MoreMenu
             onEdit={() => onEdit(release)}
             onDelete={() => onDelete(release)}
+            canEdit={release.status !== "completed"}
           />
         ) : null}
       </div>
