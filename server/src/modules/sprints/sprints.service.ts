@@ -66,5 +66,8 @@ export async function deleteSprintRecord(id: bigint) {
   if (sprint.status === "active") {
     throw new HttpError(400, "Cannot delete an active sprint. Close it first.");
   }
+  if (sprint.status === "closed") {
+    await prisma.task.deleteMany({ where: { sprintId: id } });
+  }
   await prisma.sprint.delete({ where: { id } });
 }
