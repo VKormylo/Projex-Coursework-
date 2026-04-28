@@ -18,8 +18,10 @@ import MyTasks from '~/pages/my-tasks/MyTasks'
 import Admin from '~/pages/admin/Admin'
 import Profile from '~/pages/profile/Profile'
 import Releases from '~/pages/releases/Releases'
+import ReleaseDetail from '~/pages/releases/ReleaseDetail'
+import Analytics from '~/pages/analytics/Analytics'
 
-import { authCheck, guestOnly } from './loaders/authCheck'
+import { authCheck, guestOnly, roleCheck } from './loaders/authCheck'
 
 export const routerConfig = (
   <Route element={<App />}>
@@ -31,6 +33,12 @@ export const routerConfig = (
       <Route path="board/:taskId" element={<TaskDetail />} />
       <Route path="my-tasks" element={<MyTasks />} />
       <Route path="releases" element={<Releases />} />
+      <Route path="releases/:releaseId" element={<ReleaseDetail />} />
+      <Route
+        path="analytics"
+        element={<Analytics />}
+        loader={roleCheck('Admin', 'Project Manager')}
+      />
       <Route path="admin" element={<Admin />} />
       <Route path="profile" element={<Profile />} />
     </Route>

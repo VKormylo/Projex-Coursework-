@@ -1,47 +1,51 @@
-import { useCallback, useState } from 'react'
-import { useClickOutside } from '~/hooks/useClickOutside'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import DashboardLayout from '~/components/dashboard-layout/DashboardLayout'
-import ProjectCard from '~/components/project-card/ProjectCard'
-import Button from '~/components/button/Button'
-import ConfirmDialog from '~/components/confirm-dialog/ConfirmDialog'
-import { ChevronDownIcon, PlusIcon, SearchIcon } from '~/components/svg/Svg'
+import { useCallback, useState } from "react";
+import { useClickOutside } from "~/hooks/useClickOutside";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import DashboardLayout from "~/components/dashboard-layout/DashboardLayout";
+import ProjectCard from "~/components/project-card/ProjectCard";
+import Button from "~/components/button/Button";
+import ConfirmDialog from "~/components/confirm-dialog/ConfirmDialog";
+import { ChevronDownIcon, PlusIcon, SearchIcon } from "~/components/svg/Svg";
 import ProjectFormDialog, {
   type ProjectFormSubmitData,
-} from './CreateProjectDialog'
-import { projectService } from '~/services/project-service'
-import { useAuthContext } from '~/context/authContext'
-import type { ApiProjectStatus, ProjectDto } from '~/types/project.types'
+} from "./CreateProjectDialog";
+import { projectService } from "~/services/project-service";
+import { useAuthContext } from "~/context/authContext";
+import type { ApiProjectStatus, ProjectDto } from "~/types/project.types";
 
-const STATUS_OPTIONS: { value: ApiProjectStatus | ''; label: string }[] = [
-  { value: '', label: 'Всі статуси' },
-  { value: 'active', label: 'Активний' },
-  { value: 'planned', label: 'Планування' },
-  { value: 'on_hold', label: 'Призупинено' },
-  { value: 'completed', label: 'Завершено' },
-  { value: 'archived', label: 'Архів' },
-]
+const STATUS_OPTIONS: { value: ApiProjectStatus | ""; label: string }[] = [
+  { value: "", label: "Всі статуси" },
+  { value: "active", label: "Активний" },
+  { value: "planned", label: "Планування" },
+  { value: "on_hold", label: "Призупинено" },
+  { value: "completed", label: "Завершено" },
+  { value: "archived", label: "Заархівовано" },
+];
 
 export default function Projects() {
-  const queryClient = useQueryClient()
-  const { user } = useAuthContext()
-  const isDeveloper = user?.role?.name === 'Developer'
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const isDeveloper = user?.role?.name === "Developer";
 
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ApiProjectStatus | ''>('')
-  const [statusOpen, setStatusOpen] = useState(false)
-  const closeStatusDrop = useCallback(() => setStatusOpen(false), [])
-  const statusDropRef = useClickOutside<HTMLDivElement>(closeStatusDrop, statusOpen)
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ApiProjectStatus | "">("");
+  const [statusOpen, setStatusOpen] = useState(false);
+  const closeStatusDrop = useCallback(() => setStatusOpen(false), []);
+  const statusDropRef = useClickOutside<HTMLDivElement>(
+    closeStatusDrop,
+    statusOpen,
+  );
 
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editProject, setEditProject] = useState<ProjectDto | null>(null)
-  const [deleteProjectTarget, setDeleteProjectTarget] = useState<ProjectDto | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editProject, setEditProject] = useState<ProjectDto | null>(null);
+  const [deleteProjectTarget, setDeleteProjectTarget] =
+    useState<ProjectDto | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ["projects"],
     queryFn: () => projectService.list(),
-  })
+  });
 
   const { mutate: createProject, isPending: isCreating } = useMutation({
     mutationFn: (payload: ProjectFormSubmitData) =>
@@ -53,53 +57,60 @@ export default function Projects() {
         createdBy: user!.id,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      setCreateOpen(false)
-      setApiError(null)
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setCreateOpen(false);
+      setApiError(null);
     },
     onError: (err: Error) => setApiError(err.message),
-  })
+  });
 
   const { mutate: updateProject, isPending: isUpdating } = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ProjectFormSubmitData }) =>
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ProjectFormSubmitData;
+    }) =>
       projectService.update(id, {
         name: payload.name,
         description: payload.description,
         status: payload.status,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      setEditProject(null)
-      setApiError(null)
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setEditProject(null);
+      setApiError(null);
     },
     onError: (err: Error) => setApiError(err.message),
-  })
+  });
 
   const { mutate: archiveProject } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: ApiProjectStatus }) =>
       projectService.update(id, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
-  })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
+  });
 
   const { mutate: deleteProject, isPending: isDeletingProject } = useMutation({
     mutationFn: (id: string) => projectService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      setDeleteProjectTarget(null)
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setDeleteProjectTarget(null);
     },
-  })
+  });
 
-  const projects = data?.projects ?? []
+  const projects = data?.projects ?? [];
 
   const filtered = projects.filter((p) => {
-    const q = search.trim().toLowerCase()
-    const matchSearch = q === '' || p.name.toLowerCase().includes(q)
-    const matchStatus = statusFilter === '' || p.status === statusFilter
-    return matchSearch && matchStatus
-  })
+    const q = search.trim().toLowerCase();
+    const matchSearch = q === "" || p.name.toLowerCase().includes(q);
+    const matchStatus = statusFilter === "" || p.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   const selectedStatusLabel =
-    STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? 'Всі статуси'
+    STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ??
+    "Всі статуси";
 
   return (
     <DashboardLayout>
@@ -118,8 +129,8 @@ export default function Projects() {
               type="button"
               className="gap-1"
               onClick={() => {
-                setApiError(null)
-                setCreateOpen(true)
+                setApiError(null);
+                setCreateOpen(true);
               }}
             >
               <PlusIcon className="text-white" />
@@ -158,13 +169,13 @@ export default function Projects() {
                     key={o.value}
                     type="button"
                     onClick={() => {
-                      setStatusFilter(o.value)
-                      setStatusOpen(false)
+                      setStatusFilter(o.value);
+                      setStatusOpen(false);
                     }}
                     className={`w-full px-3 py-2 text-left text-sm hover:bg-[#f8fafc] ${
                       statusFilter === o.value
-                        ? 'font-medium text-[#1447e6]'
-                        : 'text-[#0a0a0a]'
+                        ? "font-medium text-[#1447e6]"
+                        : "text-[#0a0a0a]"
                     }`}
                   >
                     {o.label}
@@ -197,8 +208,8 @@ export default function Projects() {
                 key={p.id}
                 project={p}
                 onEdit={(proj) => {
-                  setApiError(null)
-                  setEditProject(proj)
+                  setApiError(null);
+                  setEditProject(proj);
                 }}
                 onArchive={(proj) =>
                   archiveProject({ id: proj.id, status: proj.status })
@@ -246,20 +257,20 @@ export default function Projects() {
         onClose={() => setDeleteProjectTarget(null)}
         onCancel={() => setDeleteProjectTarget(null)}
         onConfirm={() => {
-          if (deleteProjectTarget) deleteProject(deleteProjectTarget.id)
+          if (deleteProjectTarget) deleteProject(deleteProjectTarget.id);
         }}
         isPending={isDeletingProject}
         title="Видалити проєкт?"
         description="Цю дію не можна скасувати."
       >
         <p className="text-sm text-[#45556c]">
-          Проєкт{' '}
+          Проєкт{" "}
           <span className="font-medium text-[#0f172b]">
             {deleteProjectTarget?.name}
-          </span>{' '}
+          </span>{" "}
           буде видалено назавжди.
         </p>
       </ConfirmDialog>
     </DashboardLayout>
-  )
+  );
 }

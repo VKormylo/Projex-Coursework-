@@ -7,9 +7,12 @@ import { z } from "zod";
 
 import DashboardLayout from "~/components/dashboard-layout/DashboardLayout";
 import Badge from "~/components/badge/Badge";
+import Button from "~/components/button/Button";
 import { ChevronDownIcon } from "~/components/svg/Svg";
 import { userService } from "~/services/user-service";
 import { teamService } from "~/services/team-service";
+import { baseService } from "~/services/base-service";
+import { URLs } from "~/constants/request";
 import { useAuthContext } from "~/context/authContext";
 import { useClickOutside } from "~/hooks/useClickOutside";
 import type { AdminUserDto, TeamDto, RoleDto } from "~/types/project.types";
@@ -143,13 +146,13 @@ function CreateUserDialog({
               {
                 name: "fullName",
                 label: "Повне ім'я",
-                placeholder: "Іван Іваненко",
+                placeholder: "Ім'я та прізвище",
                 type: "text",
               },
               {
                 name: "email",
                 label: "Email",
-                placeholder: "ivan@company.com",
+                placeholder: "Електронна адреса",
                 type: "email",
               },
               {
@@ -161,7 +164,7 @@ function CreateUserDialog({
               {
                 name: "position",
                 label: "Посада",
-                placeholder: "Frontend Developer",
+                placeholder: "Посада",
                 type: "text",
               },
             ] as const
@@ -206,20 +209,17 @@ function CreateUserDialog({
             <p className="text-red-500 text-sm">Помилка при створенні</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              variant="outlined"
+              className="text-gray-700"
             >
               Скасувати
-            </button>
-            <button
-              type="submit"
-              disabled={createMut.isPending}
-              className="px-4 py-2 rounded-lg bg-[#3b82f6] text-sm text-white font-medium hover:bg-[#2563eb] transition-colors disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={createMut.isPending}>
               {createMut.isPending ? "Збереження..." : "Додати"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -323,20 +323,17 @@ function EditUserDialog({
             <p className="text-red-500 text-sm">Помилка при оновленні</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              variant="outlined"
+              className="text-gray-700"
             >
               Скасувати
-            </button>
-            <button
-              type="submit"
-              disabled={updateMut.isPending}
-              className="px-4 py-2 rounded-lg bg-[#3b82f6] text-sm text-white font-medium hover:bg-[#2563eb] transition-colors disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={updateMut.isPending}>
               {updateMut.isPending ? "Збереження..." : "Зберегти"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -415,14 +412,14 @@ function AddMemberDialog({
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 type="email"
-                placeholder="user@company.com"
+                placeholder="Електронна адреса"
                 className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40"
               />
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={searching || !email.trim()}
-                className="px-4 py-2 rounded-lg bg-[#f3f3f5] text-sm font-medium text-gray-700 hover:bg-[#ebebed] transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[#f3f3f5] text-sm font-medium text-gray-700 hover:bg-[#ebebed] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {searching ? "..." : "Знайти"}
               </button>
@@ -460,21 +457,21 @@ function AddMemberDialog({
           )}
 
           <div className="flex justify-end gap-3 pt-1">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              variant="outlined"
+              className="text-gray-700"
             >
               Скасувати
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => addMut.mutate()}
               disabled={!found || isAlreadyMember(found.id) || addMut.isPending}
-              className="px-4 py-2 rounded-lg bg-[#3b82f6] text-sm text-white font-medium hover:bg-[#2563eb] transition-colors disabled:opacity-50"
             >
               {addMut.isPending ? "Додавання..." : "Додати до команди"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -528,7 +525,7 @@ function TeamDialog({
             </label>
             <input
               {...register("name")}
-              placeholder="Команда розробки"
+              placeholder="Назва команди"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40"
             />
             {errors.name && (
@@ -539,24 +536,21 @@ function TeamDialog({
             <p className="text-red-500 text-sm">Помилка при збереженні</p>
           )}
           <div className="flex justify-end gap-3 pt-1">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              variant="outlined"
+              className="text-gray-700"
             >
               Скасувати
-            </button>
-            <button
-              type="submit"
-              disabled={saveMut.isPending}
-              className="px-4 py-2 rounded-lg bg-[#3b82f6] text-sm text-white font-medium hover:bg-[#2563eb] transition-colors disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={saveMut.isPending}>
               {saveMut.isPending
                 ? "Збереження..."
                 : team
                   ? "Зберегти"
                   : "Створити"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -914,8 +908,38 @@ function UsersTab({
   roles: RoleDto[];
 }) {
   const qc = useQueryClient();
+  const { user: currentUser } = useAuthContext();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [seedDone, setSeedDone] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const seedMut = useMutation({
+    mutationFn: () =>
+      baseService.request<{ users: number; sprints: number; tasks: number }>({
+        method: "POST",
+        url: URLs.admin.seed,
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["users"] });
+      await qc.invalidateQueries({ queryKey: ["teams"] });
+      setSeedDone(true);
+    },
+  });
+
+  const clearMut = useMutation({
+    mutationFn: () =>
+      baseService.request<{ cleared: boolean }>({
+        method: "POST",
+        url: URLs.admin.clear,
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["users"] });
+      await qc.invalidateQueries({ queryKey: ["teams"] });
+      setSeedDone(false);
+      setConfirmClear(false);
+    },
+  });
   const [statusFilter, setStatusFilter] = useState("");
   const [roleDropOpen, setRoleDropOpen] = useState(false);
   const [statusDropOpen, setStatusDropOpen] = useState(false);
@@ -984,19 +1008,61 @@ function UsersTab({
             Керування користувачами та ролями системи
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#3b82f6] text-white text-sm font-medium rounded-lg hover:bg-[#2563eb] transition-colors"
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Додати користувача
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmClear(true)}
+            disabled={clearMut.isPending}
+            className="flex h-9 items-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path
+                fillRule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {clearMut.isPending ? "Очищення..." : "Очистити БД"}
+          </button>
+          <button
+            type="button"
+            onClick={() => seedMut.mutate()}
+            disabled={seedMut.isPending || seedDone}
+            title={
+              seedDone
+                ? "Вже заповнено"
+                : seedMut.isError
+                  ? "Помилка (можливо вже заповнено)"
+                  : "Заповнити тестовими даними"
+            }
+            className="flex h-9 items-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-4 text-sm font-medium text-[#45556c] hover:bg-[#f1f5f9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
+              <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
+              <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
+            </svg>
+            {seedMut.isPending
+              ? "Заповнення..."
+              : seedDone
+                ? "Заповнено"
+                : "Заповнити даними"}
+          </button>
+          <Button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="gap-2"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Додати користувача
+          </Button>
+        </div>
       </div>
 
       {/* stats */}
@@ -1202,12 +1268,14 @@ function UsersTab({
                       {formatDate(u.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <UserRowDropdown
-                        user={u}
-                        onEdit={() => setEditUser(u)}
-                        onToggleActive={() => toggleActiveMut.mutate(u)}
-                        onAssignAdmin={() => assignAdminMut.mutate(u)}
-                      />
+                      {u.id !== currentUser?.id && (
+                        <UserRowDropdown
+                          user={u}
+                          onEdit={() => setEditUser(u)}
+                          onToggleActive={() => toggleActiveMut.mutate(u)}
+                          onAssignAdmin={() => assignAdminMut.mutate(u)}
+                        />
+                      )}
                     </td>
                   </tr>
                 );
@@ -1217,6 +1285,37 @@ function UsersTab({
         </table>
       </div>
 
+      {confirmClear && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
+              Очистити базу даних?
+            </h3>
+            <p className="text-sm text-gray-600 mb-5">
+              Буде видалено всі проекти, спринти, задачі, команди та
+              користувачів (крім вашого акаунту). Цю дію неможливо скасувати.
+            </p>
+            {clearMut.isError && (
+              <p className="text-red-500 text-sm mb-3">Помилка при очищенні</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Скасувати
+              </button>
+              <button
+                onClick={() => clearMut.mutate()}
+                disabled={clearMut.isPending}
+                className="px-4 py-2 rounded-lg bg-red-600 text-sm text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-60"
+              >
+                {clearMut.isPending ? "Очищення..." : "Очистити"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showCreate && (
         <CreateUserDialog
           roles={roles}
@@ -1289,9 +1388,10 @@ function TeamsTab({
           </p>
         </div>
         {canManage && (
-          <button
+          <Button
+            type="button"
             onClick={() => setShowCreateTeam(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#3b82f6] text-white text-sm font-medium rounded-lg hover:bg-[#2563eb] transition-colors"
+            className="gap-2"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path
@@ -1301,7 +1401,7 @@ function TeamsTab({
               />
             </svg>
             Нова команда
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1514,7 +1614,7 @@ function TeamsTab({
                         <td className="px-4 py-3 text-right">
                           {canManage &&
                             currentTeam &&
-                            (isAdminRole || m.userId !== currentUserId) && (
+                            m.userId !== currentUserId && (
                               <MemberRowDropdown
                                 member={m}
                                 team={currentTeam}

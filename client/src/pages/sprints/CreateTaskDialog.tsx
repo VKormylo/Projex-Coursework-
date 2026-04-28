@@ -1,9 +1,11 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Dialog from "~/components/dialog/Dialog";
 import Button from "~/components/button/Button";
+import Select from "~/components/select/Select";
+import type { SelectOption } from "~/components/select/Select";
 
 const schema = z.object({
   title: z
@@ -12,13 +14,25 @@ const schema = z.object({
     .min(2, "Мінімум 2 символи")
     .max(220, "Максимум 220 символів"),
   priority: z.enum(["low", "medium", "high", "critical"] as const),
-  storyPoint: z.number().int().min(0).max(100),
+  storyPoint: z.number().int().min(0).max(100).nullable().optional(),
   assigneeId: z.string().trim().optional(),
-  dueDate: z.string().optional(),
+  dueDate: z
+    .string()
+    .optional()
+    .refine((v) => !v || v >= new Date().toISOString().slice(0, 10), {
+      message: "Дата не може бути в минулому",
+    }),
   sprintId: z.string().trim().optional(),
 });
 
 export type CreateTaskFormValues = z.infer<typeof schema>;
+
+const PRIORITY_OPTIONS: SelectOption[] = [
+  { value: "low", label: "Низький", className: "text-[#374151]" },
+  { value: "medium", label: "Середній", className: "text-[#1447e6]" },
+  { value: "high", label: "Високий", className: "text-[#92400e]" },
+  { value: "critical", label: "Критичний", className: "text-[#dc2626]" },
+];
 
 const inputClass =
   "h-10 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 py-1 text-sm text-[#0f172b] outline-none placeholder:text-[#94a3b8] hover:border-[#cbd5e1] focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/30";
@@ -47,13 +61,14 @@ export default function CreateTaskDialog({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<CreateTaskFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
       priority: "medium",
-      storyPoint: 0,
+      storyPoint: null,
       assigneeId: "",
       dueDate: "",
       sprintId: "",
@@ -65,7 +80,7 @@ export default function CreateTaskDialog({
       reset({
         title: "",
         priority: "medium",
-        storyPoint: 0,
+        storyPoint: null,
         assigneeId: "",
         dueDate: "",
         sprintId: "",
@@ -77,6 +92,16 @@ export default function CreateTaskDialog({
     reset();
     onClose();
   }
+
+  const sprintOptions: SelectOption[] = [
+    { value: "", label: "Без спринту (беклог)" },
+    ...sprints.map((s) => ({ value: s.id, label: s.name })),
+  ];
+
+  const assigneeOptions: SelectOption[] = [
+    { value: "", label: "Не призначено" },
+    ...assignees.map((u) => ({ value: u.id, label: u.fullName })),
+  ];
 
   return (
     <Dialog
@@ -112,7 +137,7 @@ export default function CreateTaskDialog({
           <input
             {...register("title")}
             className={inputClass}
-            placeholder="Створити систему аутентифікації користувачів"
+            placeholder="Назва задачі"
           />
           {errors.title ? (
             <p className="text-xs text-red-600">{errors.title.message}</p>
@@ -121,34 +146,45 @@ export default function CreateTaskDialog({
 
         <div className="flex flex-col gap-2">
           <label className={labelClass}>Спринт</label>
-          <select {...register("sprintId")} className={inputClass}>
-            <option value="">Без спринту (беклог)</option>
-            {sprints.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} ({s.status === "active" ? "active" : "planned"})
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="sprintId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                options={sprintOptions}
+              />
+            )}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
           <label className={labelClass}>Пріоритет</label>
-          <select {...register("priority")} className={inputClass}>
-            <option value="low">Низький</option>
-            <option value="medium">Середній</option>
-            <option value="high">Високий</option>
-            <option value="critical">Критичний</option>
-          </select>
+          <Controller
+            name="priority"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onChange={field.onChange}
+                options={PRIORITY_OPTIONS}
+              />
+            )}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
           <label className={labelClass}>Story Points</label>
           <input
-            {...register("storyPoint", { valueAsNumber: true })}
+            {...register("storyPoint", {
+              setValueAs: (v) =>
+                v === "" || v == null ? null : parseInt(v, 10),
+            })}
             type="number"
             min={0}
             className={inputClass}
-            placeholder="0"
+            placeholder="—"
           />
           {errors.storyPoint ? (
             <p className="text-xs text-red-600">{errors.storyPoint.message}</p>
@@ -158,19 +194,30 @@ export default function CreateTaskDialog({
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className={labelClass}>Відповідальний</label>
-            <select {...register("assigneeId")} className={inputClass}>
-              <option value="">Не призначено</option>
-              {assignees.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="assigneeId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  options={assigneeOptions}
+                />
+              )}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
             <label className={labelClass}>Дедлайн</label>
-            <input {...register("dueDate")} type="date" className={inputClass} />
+            <input
+              {...register("dueDate")}
+              type="date"
+              min={new Date().toISOString().slice(0, 10)}
+              className={inputClass}
+            />
+            {errors.dueDate ? (
+              <p className="text-xs text-red-600">{errors.dueDate.message}</p>
+            ) : null}
           </div>
         </div>
       </form>

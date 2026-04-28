@@ -28,7 +28,7 @@ export default function TaskCard({
 }: Props) {
   const priorityVariant = PRIORITY_MAP[task.priority]
   const taskCode = `${projectKey}-${task.id}`
-  const sp = task.storyPoint ?? 0
+  const sp = task.storyPoint
   const interactive = Boolean(onClick)
 
   return (
@@ -58,7 +58,7 @@ export default function TaskCard({
           <span className="text-xs leading-4 text-[#62748e]">
             {assigneeName ?? (task.assigneeId ? `#${task.assigneeId}` : 'Не призначено')}
           </span>
-          <span className="text-xs leading-4 text-[#62748e] shrink-0">{sp} SP</span>
+          <span className="text-xs leading-4 text-[#62748e] shrink-0">{sp != null ? `${sp} SP` : "—"}</span>
         </div>
       </div>
       <ChevronRightIcon

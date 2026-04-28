@@ -72,7 +72,7 @@ export default function AuthSignup() {
             name="fullName"
             label={"Повне ім'я"}
             autoComplete="name"
-            placeholder="Іван Петренко"
+            placeholder="Ім'я та прізвище"
             icon={<UserIcon />}
             error={errors.fullName}
           />
@@ -82,7 +82,7 @@ export default function AuthSignup() {
             label="Email"
             type="email"
             autoComplete="email"
-            placeholder="your.email@company.com"
+            placeholder="Електронна адреса"
             icon={<MailIcon />}
             error={errors.email}
           />

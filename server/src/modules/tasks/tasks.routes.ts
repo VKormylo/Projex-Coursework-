@@ -21,7 +21,7 @@ export const createTaskSchema = z.object({
   description: z.string().optional(),
   priority: z.nativeEnum(TaskPriority),
   status: z.nativeEnum(TaskStatus),
-  storyPoint: z.number().int().min(0).optional(),
+  storyPoint: z.number().int().min(0).nullable().optional(),
   assigneeId: z.string().regex(/^\d+$/).nullable().optional(),
   reporterId: z.string().regex(/^\d+$/),
   dueDate: z.string().date().optional(),

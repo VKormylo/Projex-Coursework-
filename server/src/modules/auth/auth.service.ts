@@ -89,8 +89,11 @@ export async function registerUser(input: {
 export async function loginUser(input: { email: string; password: string }) {
   const { email, password } = input;
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.isActive) {
+  if (!user) {
     throw new HttpError(401, "Invalid credentials");
+  }
+  if (!user.isActive) {
+    throw new HttpError(403, "Обліковий запис деактивовано. Зверніться до адміністратора.");
   }
 
   const ok = await bcrypt.compare(password, user.passwordHash);

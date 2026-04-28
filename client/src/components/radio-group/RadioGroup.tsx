@@ -1,19 +1,19 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 export interface RadioOption<T extends string> {
-  value: T
-  label: string
-  description?: string
+  value: T;
+  label: string;
+  description?: string;
 }
 
 type Props<T extends string> = {
-  name: string
-  legend?: ReactNode
-  options: RadioOption<T>[]
-  value: T
-  onChange: (value: T) => void
-  error?: string
-}
+  name: string;
+  legend?: ReactNode;
+  options: RadioOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  error?: string;
+};
 
 export default function RadioGroup<T extends string>({
   name,
@@ -26,13 +26,13 @@ export default function RadioGroup<T extends string>({
   return (
     <fieldset className="flex w-full flex-col gap-3">
       {legend ? (
-        <legend className="text-sm font-medium leading-[14px] text-[#0a0a0a]">
+        <legend className="text-sm mb-4 font-medium leading-[14px] text-[#0a0a0a]">
           {legend}
         </legend>
       ) : null}
       <div className="flex flex-col gap-3.5">
         {options.map((o) => {
-          const checked = o.value === value
+          const checked = o.value === value;
           return (
             <label
               key={o.value}
@@ -40,7 +40,7 @@ export default function RadioGroup<T extends string>({
             >
               <span
                 className={`relative flex size-4 shrink-0 items-center justify-center rounded-full border bg-white shadow-sm ${
-                  checked ? 'border-[#3b82f6]' : 'border-black/10'
+                  checked ? "border-[#3b82f6]" : "border-black/10"
                 }`}
               >
                 <input
@@ -52,14 +52,17 @@ export default function RadioGroup<T extends string>({
                   className="absolute inset-0 size-4 cursor-pointer opacity-0"
                 />
                 {checked ? (
-                  <span className="size-2 rounded-full bg-[#3b82f6]" aria-hidden />
+                  <span
+                    className="size-2 rounded-full bg-[#3b82f6]"
+                    aria-hidden
+                  />
                 ) : null}
               </span>
               <span className="text-sm font-normal leading-[14px] text-[#0a0a0a]">
                 {o.label}
               </span>
             </label>
-          )
+          );
         })}
       </div>
       {error ? (
@@ -68,5 +71,5 @@ export default function RadioGroup<T extends string>({
         </p>
       ) : null}
     </fieldset>
-  )
+  );
 }

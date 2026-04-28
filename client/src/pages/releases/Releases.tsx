@@ -1,58 +1,57 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import DashboardLayout from '~/components/dashboard-layout/DashboardLayout'
-import Button from '~/components/button/Button'
-import ConfirmDialog from '~/components/confirm-dialog/ConfirmDialog'
-import { PlusIcon } from '~/components/svg/Svg'
-import CreateReleaseDialog, { type ReleaseFormValues } from './CreateReleaseDialog'
-import { releaseService } from '~/services/release-service'
-import { projectService } from '~/services/project-service'
-import { sprintService } from '~/services/sprint-service'
-import { useAuthContext } from '~/context/authContext'
-import type { ReleaseDto } from '~/types/release.types'
-
-function getReleaseStatus(releaseDate: string): 'planned' | 'released' {
-  return new Date(releaseDate) > new Date() ? 'planned' : 'released'
-}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import DashboardLayout from "~/components/dashboard-layout/DashboardLayout";
+import Button from "~/components/button/Button";
+import ConfirmDialog from "~/components/confirm-dialog/ConfirmDialog";
+import { PlusIcon } from "~/components/svg/Svg";
+import CreateReleaseDialog, {
+  type ReleaseFormValues,
+} from "./CreateReleaseDialog";
+import { releaseService } from "~/services/release-service";
+import { projectService } from "~/services/project-service";
+import { sprintService } from "~/services/sprint-service";
+import { useAuthContext } from "~/context/authContext";
+import type { ReleaseDto } from "~/types/release.types";
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('uk-UA', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-function StatusBadge({ status }: { status: 'planned' | 'released' }) {
-  if (status === 'planned') {
+function StatusBadge({ status }: { status: "planned" | "released" }) {
+  if (status === "planned") {
     return (
       <span className="rounded-lg bg-[#dbeafe] px-2.5 py-0.5 text-xs font-medium text-[#1447e6]">
         Запланований
       </span>
-    )
+    );
   }
   return (
     <span className="rounded-lg bg-[#d0fae5] px-2.5 py-0.5 text-xs font-medium text-[#007a55]">
       Випущений
     </span>
-  )
+  );
 }
 
 function MoreMenu({
   onEdit,
   onDelete,
 }: {
-  onEdit: () => void
-  onDelete: () => void
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-9 items-center justify-center rounded-lg text-[#45556c] transition hover:bg-[#f1f5f9]"
+        className="flex h-8 w-9 cursor-pointer items-center justify-center rounded-lg text-[#45556c] transition hover:bg-[#f1f5f9]"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <circle cx="8" cy="3" r="1.2" fill="currentColor" />
@@ -67,20 +66,20 @@ function MoreMenu({
             <button
               type="button"
               onClick={() => {
-                setOpen(false)
-                onEdit()
+                setOpen(false);
+                onEdit();
               }}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-[#0f172b] hover:bg-[#f8fafc]"
+              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-[#0f172b] hover:bg-[#f8fafc]"
             >
               Редагувати
             </button>
             <button
               type="button"
               onClick={() => {
-                setOpen(false)
-                onDelete()
+                setOpen(false);
+                onDelete();
               }}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
             >
               Видалити
             </button>
@@ -88,7 +87,7 @@ function MoreMenu({
         </>
       )}
     </div>
-  )
+  );
 }
 
 function ReleaseCard({
@@ -97,21 +96,34 @@ function ReleaseCard({
   onDelete,
   canManage,
 }: {
-  release: ReleaseDto
-  onEdit: (r: ReleaseDto) => void
-  onDelete: (r: ReleaseDto) => void
-  canManage: boolean
+  release: ReleaseDto;
+  onEdit: (r: ReleaseDto) => void;
+  onDelete: (r: ReleaseDto) => void;
+  canManage: boolean;
 }) {
-  const status = getReleaseStatus(release.releaseDate)
-  const tasks = release.sprint?.tasks ?? []
-  const total = tasks.length
-  const done = tasks.filter((t) => t.status === 'done').length
-  const percent = total > 0 ? Math.round((done / total) * 100) : 0
+  const navigate = useNavigate();
+  const status: "planned" | "released" =
+    release.status === "completed" ? "released" : "planned";
+  const tasks = release.sprint?.tasks ?? [];
+  const total = tasks.length;
+  const done = tasks.filter((t) => t.status === "done").length;
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-4 rounded-[10px] border border-[#e2e8f0] bg-white px-6 pt-6 pb-1">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/releases/${release.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(`/releases/${release.id}`);
+        }
+      }}
+      className="flex cursor-pointer flex-col gap-4 rounded-[10px] border border-[#e2e8f0] bg-white px-6 pt-6 pb-1 outline-none ring-offset-2 transition-colors hover:bg-[#f8fafc] focus-visible:ring-2 focus-visible:ring-[#3b82f6]"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#dbeafe]">
             <svg
               width="24"
@@ -129,13 +141,17 @@ function ReleaseCard({
               />
             </svg>
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <span className="text-xl font-bold text-[#0f172b]">{release.version}</span>
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xl font-bold text-[#0f172b]">
+                {release.version}
+              </span>
               <StatusBadge status={status} />
             </div>
-            <p className="text-[18px] leading-7 text-[#314158]">{release.name}</p>
-            <div className="flex items-center gap-4 text-sm text-[#45556c]">
+            <p className="text-[18px] leading-7 text-[#314158]">
+              {release.name}
+            </p>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[#45556c]">
               <span className="flex items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <rect
@@ -182,7 +198,10 @@ function ReleaseCard({
           </div>
         </div>
         {canManage ? (
-          <MoreMenu onEdit={() => onEdit(release)} onDelete={() => onDelete(release)} />
+          <MoreMenu
+            onEdit={() => onEdit(release)}
+            onDelete={() => onDelete(release)}
+          />
         ) : null}
       </div>
 
@@ -205,36 +224,39 @@ function ReleaseCard({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function Releases() {
-  const queryClient = useQueryClient()
-  const { user } = useAuthContext()
-  const isDeveloper = user?.role?.name === 'Developer'
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editRelease, setEditRelease] = useState<ReleaseDto | null>(null)
-  const [deleteReleaseTarget, setDeleteReleaseTarget] = useState<ReleaseDto | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const isDeveloper = user?.role?.name === "Developer";
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editRelease, setEditRelease] = useState<ReleaseDto | null>(null);
+  const [deleteReleaseTarget, setDeleteReleaseTarget] =
+    useState<ReleaseDto | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const { data: releasesData, isLoading } = useQuery({
-    queryKey: ['releases'],
+    queryKey: ["releases"],
     queryFn: () => releaseService.list(),
-  })
+  });
 
   const { data: projectsData } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ["projects"],
     queryFn: () => projectService.list(),
-  })
+  });
 
   const { data: sprintsData } = useQuery({
-    queryKey: ['sprints'],
+    queryKey: ["sprints"],
     queryFn: () => sprintService.list(),
-  })
+  });
 
-  const releases = releasesData?.releases ?? []
-  const projects = (projectsData?.projects ?? []).filter((p) => p.status === 'active')
-  const sprints = sprintsData?.sprints ?? []
+  const releases = releasesData?.releases ?? [];
+  const projects = (projectsData?.projects ?? []).filter(
+    (p) => p.status === "active",
+  );
+  const sprints = sprintsData?.sprints ?? [];
 
   const { mutate: createRelease, isPending: isCreating } = useMutation({
     mutationFn: (vals: ReleaseFormValues) =>
@@ -247,12 +269,12 @@ export default function Releases() {
         notes: vals.notes || null,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] })
-      setCreateOpen(false)
-      setApiError(null)
+      queryClient.invalidateQueries({ queryKey: ["releases"] });
+      setCreateOpen(false);
+      setApiError(null);
     },
     onError: (err: Error) => setApiError(err.message),
-  })
+  });
 
   const { mutate: updateRelease, isPending: isUpdating } = useMutation({
     mutationFn: (vals: ReleaseFormValues) =>
@@ -265,26 +287,26 @@ export default function Releases() {
         notes: vals.notes || null,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] })
-      setEditRelease(null)
-      setApiError(null)
+      queryClient.invalidateQueries({ queryKey: ["releases"] });
+      setEditRelease(null);
+      setApiError(null);
     },
     onError: (err: Error) => setApiError(err.message),
-  })
+  });
 
   const { mutate: deleteRelease, isPending: isDeletingRelease } = useMutation({
     mutationFn: (id: string) => releaseService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] })
-      setDeleteReleaseTarget(null)
+      queryClient.invalidateQueries({ queryKey: ["releases"] });
+      setDeleteReleaseTarget(null);
     },
-  })
+  });
 
   function handleFormSubmit(vals: ReleaseFormValues) {
     if (editRelease) {
-      updateRelease(vals)
+      updateRelease(vals);
     } else {
-      createRelease(vals)
+      createRelease(vals);
     }
   }
 
@@ -294,12 +316,14 @@ export default function Releases() {
         <div className="flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-bold text-[#0f172b]">Релізи</h1>
-            <p className="mt-1 text-base text-[#45556c]">Керуйте версіями та релізами продукту</p>
+            <p className="mt-1 text-base text-[#45556c]">
+              Керуйте версіями та релізами продукту
+            </p>
           </div>
           {!isDeveloper ? (
             <Button onClick={() => setCreateOpen(true)}>
               <PlusIcon />
-              Створити реліз
+              <span className="pl-1">Створити реліз</span>
             </Button>
           ) : null}
         </div>
@@ -310,7 +334,9 @@ export default function Releases() {
           </div>
         ) : releases.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#e2e8f0] py-20 text-center">
-            <p className="text-base font-medium text-[#45556c]">Немає релізів</p>
+            <p className="text-base font-medium text-[#45556c]">
+              Немає релізів
+            </p>
             <p className="mt-1 text-sm text-[#94a3b8]">
               Натисніть «Створити реліз», щоб додати перший
             </p>
@@ -322,8 +348,8 @@ export default function Releases() {
                 key={r.id}
                 release={r}
                 onEdit={(rel) => {
-                  setEditRelease(rel)
-                  setApiError(null)
+                  setEditRelease(rel);
+                  setApiError(null);
                 }}
                 onDelete={(rel) => setDeleteReleaseTarget(rel)}
                 canManage={!isDeveloper}
@@ -336,9 +362,9 @@ export default function Releases() {
       <CreateReleaseDialog
         open={createOpen || Boolean(editRelease)}
         onClose={() => {
-          setCreateOpen(false)
-          setEditRelease(null)
-          setApiError(null)
+          setCreateOpen(false);
+          setEditRelease(null);
+          setApiError(null);
         }}
         onSubmit={handleFormSubmit}
         isPending={isCreating || isUpdating}
@@ -353,20 +379,20 @@ export default function Releases() {
         onClose={() => setDeleteReleaseTarget(null)}
         onCancel={() => setDeleteReleaseTarget(null)}
         onConfirm={() => {
-          if (deleteReleaseTarget) deleteRelease(deleteReleaseTarget.id)
+          if (deleteReleaseTarget) deleteRelease(deleteReleaseTarget.id);
         }}
         isPending={isDeletingRelease}
         title="Видалити реліз?"
         description="Цю дію не можна скасувати."
       >
         <p className="text-sm text-[#45556c]">
-          Реліз{' '}
+          Реліз{" "}
           <span className="font-medium text-[#0f172b]">
             {deleteReleaseTarget?.version}
-          </span>{' '}
+          </span>{" "}
           буде видалено назавжди.
         </p>
       </ConfirmDialog>
     </DashboardLayout>
-  )
+  );
 }

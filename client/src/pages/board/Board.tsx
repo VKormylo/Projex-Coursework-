@@ -32,6 +32,7 @@ import { getTaskCode } from "~/utils/project-key";
 const COLUMNS: { id: ApiTaskStatus; label: string }[] = [
   { id: "todo", label: "To Do" },
   { id: "in_progress", label: "In Progress" },
+  { id: "blocked", label: "Blocked" },
   { id: "in_review", label: "In Review" },
   { id: "done", label: "Done" },
 ];
@@ -363,7 +364,7 @@ export default function Board() {
             disabled={!projectFilter || !sprintFilter}
           >
             <PlusIcon />
-            Створити задачу
+            <span className="pl-1">Створити задачу</span>
           </Button>
         </div>
 

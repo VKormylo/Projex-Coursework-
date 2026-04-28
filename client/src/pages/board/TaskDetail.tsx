@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "~/components/dashboard-layout/DashboardLayout";
 import Badge from "~/components/badge/Badge";
 import Button from "~/components/button/Button";
+import Select from "~/components/select/Select";
+import type { SelectOption } from "~/components/select/Select";
 import ConfirmDialog from "~/components/confirm-dialog/ConfirmDialog";
 import { taskService } from "~/services/task-service";
 import { commentService } from "~/services/comment-service";
@@ -41,20 +43,20 @@ const STATUS_LABELS: Record<ApiTaskStatus, string> = {
   done: "Done",
   blocked: "Blocked",
 };
-const PRIORITY_OPTIONS: { value: ApiTaskPriority; label: string }[] = [
-  { value: "low", label: "Низький" },
-  { value: "medium", label: "Середній" },
-  { value: "high", label: "Високий" },
-  { value: "critical", label: "Критичний" },
+const PRIORITY_OPTIONS: SelectOption[] = [
+  { value: "low",      label: "Низький",   className: "text-[#374151]" },
+  { value: "medium",   label: "Середній",  className: "text-[#1447e6]" },
+  { value: "high",     label: "Високий",   className: "text-[#92400e]" },
+  { value: "critical", label: "Критичний", className: "text-[#dc2626]" },
 ];
 
 function statusBadge(status: ApiTaskStatus) {
   const map: Record<ApiTaskStatus, BadgeVariant> = {
     todo: "planning",
     in_progress: "active",
-    in_review: "paused",
+    in_review: "review",
     done: "done",
-    blocked: "cancelled",
+    blocked: "blocked",
   };
   return map[status] ?? "planning";
 }
@@ -242,7 +244,7 @@ export default function TaskDetail() {
   const taskCode = getTaskCode(task.project?.name, task.id);
   const taskProject = projects.find((p) => p.id === task.projectId);
   const projectTeam = teams.find((t) => t.id === taskProject?.teamId);
-  const projectSprints = sprints.filter((s) => s.projectId === task.projectId);
+  const projectSprints = sprints.filter((s) => s.projectId === task.projectId && s.status === 'active');
   const developerAssignees =
     projectTeam?.teamMember
       ?.map((m) => m.user)
@@ -280,7 +282,7 @@ export default function TaskDetail() {
         <div className="mb-6">
           <button
             onClick={() => navigate("/board")}
-            className="flex items-center gap-2 text-sm font-medium text-[#62748e] transition-colors hover:text-[#0f172b]"
+            className="flex items-center cursor-pointer gap-2 text-sm font-medium text-[#62748e] transition-colors hover:text-[#0f172b]"
           >
             <ChevronRightIcon className="rotate-180" />
             Назад до дошки
@@ -553,22 +555,14 @@ export default function TaskDetail() {
 
                 <div className="divide-y divide-[#f1f5f9]">
                   <DetailRow icon={<MembersIcon />} label="Виконавець">
-                    <select
+                    <Select
                       value={task.assigneeId ?? ""}
-                      onChange={(e) =>
-                        updateDetailsMutation.mutate({
-                          assigneeId: e.target.value || null,
-                        })
-                      }
-                      className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b] outline-none hover:border-[#cbd5e1] focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/30"
-                    >
-                      <option value="">Не призначено</option>
-                      {developerAssignees.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.fullName}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateDetailsMutation.mutate({ assigneeId: val || null })}
+                      options={[
+                        { value: "", label: "Не призначено" },
+                        ...developerAssignees.map((u) => ({ value: u.id, label: u.fullName })),
+                      ]}
+                    />
                   </DetailRow>
 
                   <DetailRow icon={<UserIcon />} label="Репортер">
@@ -587,21 +581,11 @@ export default function TaskDetail() {
                   </DetailRow>
 
                   <DetailRow icon={<GoalIcon />} label="Пріоритет">
-                    <select
+                    <Select
                       value={task.priority}
-                      onChange={(e) =>
-                        updateDetailsMutation.mutate({
-                          priority: e.target.value as ApiTaskPriority,
-                        })
-                      }
-                      className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b] outline-none hover:border-[#cbd5e1] focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/30"
-                    >
-                      {PRIORITY_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateDetailsMutation.mutate({ priority: val as ApiTaskPriority })}
+                      options={PRIORITY_OPTIONS}
+                    />
                   </DetailRow>
 
                   <DetailRow
@@ -611,6 +595,7 @@ export default function TaskDetail() {
                     <input
                       type="date"
                       value={task.dueDate ? task.dueDate.slice(0, 10) : ""}
+                      min={new Date().toISOString().slice(0, 10)}
                       onChange={(e) =>
                         updateDetailsMutation.mutate({
                           dueDate: e.target.value || null,
@@ -652,22 +637,14 @@ export default function TaskDetail() {
                   ) : null}
 
                   <DetailRow icon={<GoalIcon />} label="Спринт">
-                    <select
+                    <Select
                       value={task.sprintId ?? ""}
-                      onChange={(e) =>
-                        updateDetailsMutation.mutate({
-                          sprintId: e.target.value || null,
-                        })
-                      }
-                      className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b] outline-none hover:border-[#cbd5e1] focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/30"
-                    >
-                      <option value="">Без спринту (беклог)</option>
-                      {projectSprints.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateDetailsMutation.mutate({ sprintId: val || null })}
+                      options={[
+                        { value: "", label: "Без спринту (беклог)" },
+                        ...projectSprints.map((s) => ({ value: s.id, label: s.name })),
+                      ]}
+                    />
                   </DetailRow>
 
                   {task.createdAt ? (

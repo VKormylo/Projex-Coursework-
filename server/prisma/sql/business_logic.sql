@@ -84,6 +84,48 @@ BEGIN
 END;
 $$;
 
+-- View: project task summary (task counts and story points per project)
+CREATE OR REPLACE VIEW vw_project_task_summary AS
+SELECT
+  p.id                                                                AS project_id,
+  p.name                                                              AS project_name,
+  COUNT(t.id)                                                         AS total_tasks,
+  COUNT(t.id) FILTER (WHERE t.status = 'todo')                       AS todo,
+  COUNT(t.id) FILTER (WHERE t.status = 'in_progress')                AS in_progress,
+  COUNT(t.id) FILTER (WHERE t.status = 'in_review')                  AS in_review,
+  COUNT(t.id) FILTER (WHERE t.status = 'done')                       AS done,
+  COUNT(t.id) FILTER (WHERE t.status = 'blocked')                    AS blocked,
+  COALESCE(SUM(t.story_point), 0)                                    AS total_story_points,
+  COALESCE(SUM(t.story_point) FILTER (WHERE t.status = 'done'), 0)  AS completed_story_points
+FROM projects p
+LEFT JOIN tasks t ON t.project_id = p.id
+GROUP BY p.id, p.name;
+
+-- View: sprint velocity (planned vs completed story points per sprint)
+CREATE OR REPLACE VIEW vw_sprint_velocity AS
+SELECT
+  s.id                                                                AS sprint_id,
+  s.project_id,
+  s.name                                                              AS sprint_name,
+  s.start_date,
+  s.end_date,
+  s.status,
+  COUNT(t.id)                                                         AS total_tasks,
+  COUNT(t.id) FILTER (WHERE t.status = 'done')                       AS completed_tasks,
+  COALESCE(SUM(t.story_point), 0)                                    AS planned_story_points,
+  COALESCE(SUM(t.story_point) FILTER (WHERE t.status = 'done'), 0)  AS completed_story_points,
+  CASE
+    WHEN COALESCE(SUM(t.story_point), 0) = 0 THEN 0
+    ELSE ROUND(
+      COALESCE(SUM(t.story_point) FILTER (WHERE t.status = 'done'), 0)::numeric
+      / SUM(t.story_point) * 100,
+      2
+    )
+  END                                                                 AS completion_percentage
+FROM sprints s
+LEFT JOIN tasks t ON t.sprint_id = s.id
+GROUP BY s.id, s.project_id, s.name, s.start_date, s.end_date, s.status;
+
 -- Trigger function for task history
 CREATE OR REPLACE FUNCTION fn_log_task_status_change()
 RETURNS TRIGGER

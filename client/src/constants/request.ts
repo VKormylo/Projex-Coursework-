@@ -50,4 +50,14 @@ export const URLs = {
     create: "/releases",
     byId: (id: string) => `/releases/${id}`,
   },
+  admin: {
+    seed: "/admin/seed",
+    clear: "/admin/clear",
+  },
+  analytics: {
+    projectSummary: "/analytics/project-summary",
+    sprintVelocity: "/analytics/sprint-velocity",
+    sprintStats: "/analytics/sprint-stats",
+    reportData: "/analytics/report-data",
+  },
 } as const;

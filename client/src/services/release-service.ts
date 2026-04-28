@@ -1,5 +1,9 @@
 import { URLs } from '~/constants/request'
-import type { ReleaseDto, CreateReleasePayload } from '~/types/release.types'
+import type {
+  ReleaseDto,
+  ReleaseDetailDto,
+  CreateReleasePayload,
+} from "~/types/release.types";
 import { baseService } from './base-service'
 
 interface ReleasesResponse {
@@ -9,7 +13,17 @@ interface ReleaseResponse {
   release: ReleaseDto
 }
 
+interface ReleaseDetailResponse {
+  release: ReleaseDetailDto;
+}
+
 export const releaseService = {
+  get: (id: string) =>
+    baseService.request<ReleaseDetailResponse>({
+      method: "GET",
+      url: URLs.releases.byId(id),
+    }),
+
   list: () =>
     baseService.request<ReleasesResponse>({
       method: 'GET',
@@ -23,7 +37,10 @@ export const releaseService = {
       data,
     }),
 
-  update: (id: string, data: Partial<CreateReleasePayload>) =>
+  update: (
+    id: string,
+    data: Partial<CreateReleasePayload> & { status?: "planned" | "completed" },
+  ) =>
     baseService.request<ReleaseResponse>({
       method: 'PATCH',
       url: URLs.releases.byId(id),

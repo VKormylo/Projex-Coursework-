@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type ReleaseStatus } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma";
 
@@ -22,6 +22,46 @@ const releaseInclude = {
     },
   },
 } satisfies Prisma.ReleaseInclude;
+
+/** Full release for detail page: sprint tasks with assignees and titles */
+const releaseDetailInclude = {
+  project: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  sprint: {
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      startDate: true,
+      endDate: true,
+      goal: true,
+      tasks: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          storyPoint: true,
+          assignee: {
+            select: { id: true, fullName: true },
+          },
+        },
+        orderBy: { title: "asc" as const },
+      },
+    },
+  },
+} satisfies Prisma.ReleaseInclude;
+
+export async function getReleaseByIdDetail(id: bigint) {
+  return prisma.release.findUnique({
+    where: { id },
+    include: releaseDetailInclude,
+  });
+}
 
 export async function getReleasesWhere(
   where: Prisma.ReleaseWhereInput | undefined,
@@ -62,6 +102,7 @@ export async function updateReleaseRecord(
     releaseDate?: Date;
     notes?: string | null;
     sprintId?: bigint | null;
+    status?: ReleaseStatus;
   },
 ) {
   return prisma.release.update({

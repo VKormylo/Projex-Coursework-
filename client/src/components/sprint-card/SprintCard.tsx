@@ -52,7 +52,7 @@ export default function SprintCard({
           title: hasActiveSprint ? 'Завершіть поточний активний спринт перед початком нового' : undefined,
         }]
       : []),
-    ...(onEdit
+    ...(onEdit && sprint.status !== 'closed'
       ? [{ label: 'Редагувати', icon: <EditIcon />, onClick: () => onEdit(sprint) }]
       : []),
     ...(sprint.status === 'active' && onClose

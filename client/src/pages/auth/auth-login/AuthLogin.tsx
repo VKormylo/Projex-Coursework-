@@ -1,23 +1,23 @@
-import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 
-import { authService } from '~/services/auth-service'
-import { useAuthContext } from '~/context/authContext'
-import { UserLoginSchema, type UserLogin } from '~/schemas/auth'
-import { ResponseError } from '~/exceptions/response-error'
+import { authService } from "~/services/auth-service";
+import { useAuthContext } from "~/context/authContext";
+import { UserLoginSchema, type UserLogin } from "~/schemas/auth";
+import { ResponseError } from "~/exceptions/response-error";
 
-import AuthCardHeader from '~/components/auth-card-header/AuthCardHeader'
-import AuthFooterLink from '~/components/auth-footer-link/AuthFooterLink'
-import Button from '~/components/button/Button'
-import Checkbox from '~/components/checkbox/Checkbox'
-import FormInput from '~/components/form-input/FormInput'
-import { LockIcon, MailIcon } from '~/components/svg/Svg'
+import AuthCardHeader from "~/components/auth-card-header/AuthCardHeader";
+import AuthFooterLink from "~/components/auth-footer-link/AuthFooterLink";
+import Button from "~/components/button/Button";
+import Checkbox from "~/components/checkbox/Checkbox";
+import FormInput from "~/components/form-input/FormInput";
+import { LockIcon, MailIcon } from "~/components/svg/Svg";
 
 export default function AuthLogin() {
-  const navigate = useNavigate()
-  const { signIn } = useAuthContext()
+  const navigate = useNavigate();
+  const { signIn } = useAuthContext();
 
   const {
     register,
@@ -26,21 +26,24 @@ export default function AuthLogin() {
     getValues,
   } = useForm<UserLogin>({
     resolver: zodResolver(UserLoginSchema),
-    defaultValues: { email: '', password: '', rememberMe: true },
-  })
+    defaultValues: { email: "", password: "", rememberMe: true },
+  });
 
-  const { mutate: login, error, isPending } = useMutation({
+  const {
+    mutate: login,
+    error,
+    isPending,
+  } = useMutation({
     mutationFn: (data: UserLogin) =>
       authService.login({ email: data.email, password: data.password }),
     onSuccess: (data) => {
-      const rememberMe = getValues('rememberMe')
-      signIn(data.token, data.userId, rememberMe)
-      navigate('/', { replace: true })
+      const rememberMe = getValues("rememberMe");
+      signIn(data.token, data.userId, rememberMe);
+      navigate("/", { replace: true });
     },
-  })
+  });
 
-  const serverMessage =
-    error instanceof ResponseError ? error.message : null
+  const serverMessage = error instanceof ResponseError ? error.message : null;
 
   return (
     <>
@@ -60,7 +63,7 @@ export default function AuthLogin() {
             label="Email"
             type="email"
             autoComplete="email"
-            placeholder="your.email@company.com"
+            placeholder="Електронна адреса"
             icon={<MailIcon />}
             error={errors.email}
           />
@@ -78,7 +81,7 @@ export default function AuthLogin() {
             <Checkbox
               label="Запам'ятати мене"
               defaultChecked
-              {...register('rememberMe')}
+              {...register("rememberMe")}
             />
           </div>
         </div>
@@ -94,7 +97,7 @@ export default function AuthLogin() {
 
         <div className="flex flex-col gap-4 pt-1">
           <Button stretch disabled={isPending}>
-            {isPending ? 'Зачекайте…' : 'Увійти'}
+            {isPending ? "Зачекайте…" : "Увійти"}
           </Button>
           <AuthFooterLink
             prefix="Ще не маєте акаунту?"
@@ -104,5 +107,5 @@ export default function AuthLogin() {
         </div>
       </form>
     </>
-  )
+  );
 }

@@ -6,14 +6,96 @@ import {
 } from "../../lib/access";
 import { asBigInt } from "../../lib/http";
 import { prisma } from "../../lib/prisma";
+import type { ReleaseStatus } from "@prisma/client";
 import { HttpError } from "../../middleware/error-handler";
 import {
   createReleaseFromSprintRecord,
   createReleaseRecord,
   deleteReleaseRecord,
+  getReleaseByIdDetail,
   getReleasesWhere,
   updateReleaseRecord,
 } from "./releases.service";
+
+type ReleaseListRow = Awaited<ReturnType<typeof getReleasesWhere>>[number];
+
+function serializeReleaseLite(release: ReleaseListRow) {
+  return {
+    ...release,
+    id: release.id.toString(),
+    projectId: release.projectId.toString(),
+    sprintId: release.sprintId?.toString() ?? null,
+    sprint: release.sprint
+      ? {
+          ...release.sprint,
+          id: release.sprint.id.toString(),
+          tasks: release.sprint.tasks.map((t) => ({
+            id: t.id.toString(),
+            status: t.status,
+          })),
+        }
+      : null,
+    project: {
+      ...release.project,
+      id: release.project.id.toString(),
+    },
+  };
+}
+
+export async function getRelease(req: Request, res: Response) {
+  if (!req.user) throw new HttpError(401, "Not authenticated");
+  const projectIds = await getAccessibleProjectIds(
+    BigInt(req.user.userId),
+    req.user.roles,
+  );
+
+  const id = asBigInt(req.params.id);
+  const release = await getReleaseByIdDetail(id);
+  if (!release) throw new HttpError(404, "Release not found");
+
+  if (
+    projectIds !== null &&
+    !projectIds.some((pid) => pid === release.projectId)
+  ) {
+    throw new HttpError(403, "Forbidden");
+  }
+
+  const serialized = {
+    ...release,
+    id: release.id.toString(),
+    projectId: release.projectId.toString(),
+    sprintId: release.sprintId?.toString() ?? null,
+    sprint: release.sprint
+      ? {
+          id: release.sprint.id.toString(),
+          name: release.sprint.name,
+          status: release.sprint.status,
+          startDate: release.sprint.startDate.toISOString().slice(0, 10),
+          endDate: release.sprint.endDate.toISOString().slice(0, 10),
+          goal: release.sprint.goal,
+          tasks: release.sprint.tasks.map((t) => ({
+            id: t.id.toString(),
+            title: t.title,
+            status: t.status,
+            priority: t.priority,
+            storyPoint: t.storyPoint,
+            assignee: t.assignee
+              ? {
+                  id: t.assignee.id.toString(),
+                  fullName: t.assignee.fullName,
+                }
+              : null,
+          })),
+        }
+      : null,
+    project: {
+      ...release.project,
+      id: release.project.id.toString(),
+    },
+  };
+
+  res.status(200).json({ status: "success", data: { release: serialized } });
+}
 
 export async function listReleases(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
@@ -28,26 +110,7 @@ export async function listReleases(req: Request, res: Response) {
   const where =
     projectIds === null ? undefined : { projectId: { in: projectIds } };
   const releases = await getReleasesWhere(where);
-  const serialized = releases.map((r) => ({
-    ...r,
-    id: r.id.toString(),
-    projectId: r.projectId.toString(),
-    sprintId: r.sprintId?.toString() ?? null,
-    sprint: r.sprint
-      ? {
-          ...r.sprint,
-          id: r.sprint.id.toString(),
-          tasks: r.sprint.tasks.map((t) => ({
-            id: t.id.toString(),
-            status: t.status,
-          })),
-        }
-      : null,
-    project: {
-      ...r.project,
-      id: r.project.id.toString(),
-    },
-  }));
+  const serialized = releases.map((r) => serializeReleaseLite(r));
   res.status(200).json({ status: "success", data: { releases: serialized } });
 }
 
@@ -96,7 +159,7 @@ export async function updateRelease(req: Request, res: Response) {
   if (!existing) throw new HttpError(404, "Release not found");
   await assertProjectWritable(req, existing.projectId);
 
-  const { version, name, releaseDate, notes, sprintId } = req.body;
+  const { version, name, releaseDate, notes, sprintId, status } = req.body;
   const release = await updateReleaseRecord(id, {
     ...(version !== undefined && { version }),
     ...(name !== undefined && { name }),
@@ -105,6 +168,7 @@ export async function updateRelease(req: Request, res: Response) {
     ...(sprintId !== undefined && {
       sprintId: sprintId ? asBigInt(sprintId) : null,
     }),
+    ...(status !== undefined && { status: status as ReleaseStatus }),
   });
 
   const serialized = {

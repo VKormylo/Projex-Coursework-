@@ -7,6 +7,7 @@ import {
   createRelease,
   createReleaseFromSprint,
   deleteRelease,
+  getRelease,
   listReleases,
   updateRelease,
 } from "./releases.controller";
@@ -31,11 +32,13 @@ const updateReleaseSchema = z.object({
   releaseDate: z.string().optional(),
   notes: z.string().optional().nullable(),
   sprintId: z.string().regex(/^\d+$/).optional().nullable(),
+  status: z.enum(["planned", "completed"]).optional(),
 });
 
 export const releasesRouter = Router();
 
 releasesRouter.get("/", listReleases);
+releasesRouter.get("/:id", getRelease);
 
 releasesRouter.post(
   "/",

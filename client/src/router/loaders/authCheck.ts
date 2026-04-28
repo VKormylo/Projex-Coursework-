@@ -29,3 +29,24 @@ export const guestOnly = async () => {
     return null
   }
 }
+
+export const roleCheck =
+  (...allowedRoles: string[]) =>
+  async () => {
+    if (!getStoredToken()) {
+      throw redirect('/auth/login')
+    }
+
+    try {
+      const { user } = await authService.me()
+      const roleName = user.role?.name
+      if (!roleName || !allowedRoles.includes(roleName)) {
+        throw redirect('/projects')
+      }
+      return null
+    } catch (error) {
+      if (error instanceof Response) throw error
+      clearSession()
+      throw redirect('/auth/login')
+    }
+  }

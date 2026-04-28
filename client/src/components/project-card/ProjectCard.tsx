@@ -15,7 +15,7 @@ const STATUS_MAP: Record<ApiProjectStatus, StatusVariant> = {
   active: "active",
   on_hold: "paused",
   completed: "done",
-  archived: "paused",
+  archived: "archived",
 };
 
 function projectKey(name: string) {
