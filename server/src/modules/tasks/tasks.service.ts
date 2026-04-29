@@ -1,8 +1,4 @@
-import {
-  Prisma,
-  TaskPriority,
-  TaskStatus,
-} from "@prisma/client";
+import { Prisma, TaskPriority, TaskStatus } from "@prisma/client";
 
 import { asBigInt } from "../../lib/http";
 import { prisma } from "../../lib/prisma";
@@ -44,6 +40,7 @@ export async function getTaskById(id: bigint) {
     where: { id },
     include: taskInclude,
   });
+
   if (!task) throw new HttpError(404, "Task not found");
   return task;
 }
@@ -115,15 +112,9 @@ export async function updateTaskRecord(
       ...(body.description !== undefined ? { description: body.description } : {}),
       ...(body.priority !== undefined ? { priority: body.priority } : {}),
       ...(body.storyPoint !== undefined ? { storyPoint: body.storyPoint } : {}),
-      ...(body.sprintId !== undefined
-        ? { sprintId: body.sprintId ? asBigInt(body.sprintId) : null }
-        : {}),
-      ...(body.assigneeId !== undefined
-        ? { assigneeId: body.assigneeId ? asBigInt(body.assigneeId) : null }
-        : {}),
-      ...(body.dueDate !== undefined
-        ? { dueDate: body.dueDate ? new Date(body.dueDate) : null }
-        : {}),
+      ...(body.sprintId !== undefined ? { sprintId: body.sprintId ? asBigInt(body.sprintId) : null } : {}),
+      ...(body.assigneeId !== undefined ? { assigneeId: body.assigneeId ? asBigInt(body.assigneeId) : null } : {}),
+      ...(body.dueDate !== undefined ? { dueDate: body.dueDate ? new Date(body.dueDate) : null } : {}),
     },
     include: taskInclude,
   });
@@ -132,22 +123,16 @@ export async function updateTaskRecord(
 export async function deleteTaskRecord(id: bigint) {
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task) throw new HttpError(404, "Task not found");
+
   await prisma.task.delete({ where: { id } });
 }
 
-export async function updateTaskStatusRecord(
-  id: bigint,
-  nextStatus: TaskStatus,
-  actorUserId?: string,
-) {
+export async function updateTaskStatusRecord(id: bigint, nextStatus: TaskStatus, actorUserId?: string) {
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task) throw new HttpError(404, "Task not found");
 
   if (!statusFlow[task.status].includes(nextStatus)) {
-    throw new HttpError(
-      400,
-      `Invalid transition: ${task.status} -> ${nextStatus}`,
-    );
+    throw new HttpError(400, `Invalid transition: ${task.status} -> ${nextStatus}`);
   }
 
   return prisma.$transaction(async (tx) => {

@@ -42,7 +42,9 @@ async function buildToken(userId: bigint, email: string) {
     where: { id: userId },
     include: { role: true },
   });
+
   const roles: AppRole[] = user?.role ? [user.role.name as AppRole] : [];
+
   return jwt.sign({ userId: userId.toString(), email, roles }, env.jwtSecret, {
     expiresIn: "12h",
   });
@@ -56,6 +58,7 @@ export async function registerUser(input: {
   role: AppRole;
 }) {
   const { fullName, email, password, role } = input;
+
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) {
     throw new HttpError(409, "Email already used");
@@ -83,12 +86,14 @@ export async function registerUser(input: {
 
   const newUser = await prisma.user.findUnique({ where: { email } });
   const token = await buildToken(newUser!.id, newUser!.email);
+
   return { token, userId: newUser!.id.toString() };
 }
 
 export async function loginUser(input: { email: string; password: string }) {
   const { email, password } = input;
   const user = await prisma.user.findUnique({ where: { email } });
+
   if (!user) {
     throw new HttpError(401, "Invalid credentials");
   }
@@ -118,6 +123,7 @@ export async function updateCurrentUser(
     },
     select: userSelect,
   });
+
   return serializeUser(user);
 }
 
@@ -126,8 +132,10 @@ export async function getCurrentUser(userId: bigint) {
     where: { id: userId },
     select: userSelect,
   });
+
   if (!user) {
     throw new HttpError(404, "User not found");
   }
+
   return serializeUser(user);
 }

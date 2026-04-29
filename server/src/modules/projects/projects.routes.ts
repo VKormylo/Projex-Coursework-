@@ -4,13 +4,7 @@ import { z } from "zod";
 
 import { authorize } from "../../middleware/auth";
 import { validateBody } from "../../middleware/validate";
-import {
-  createProject,
-  deleteProject,
-  getProject,
-  listProjects,
-  updateProject,
-} from "./projects.controller";
+import { createProject, deleteProject, getProject, listProjects, updateProject } from "./projects.controller";
 
 const baseProjectSchema = z.object({
   teamId: z.string().regex(/^\d+$/),
@@ -22,13 +16,8 @@ const baseProjectSchema = z.object({
   createdBy: z.string().regex(/^\d+$/),
 });
 
-const datesAreValid = (data: {
-  startDate?: string;
-  endDate?: string;
-}) =>
-  !data.startDate ||
-  !data.endDate ||
-  new Date(data.endDate) >= new Date(data.startDate);
+const datesAreValid = (data: { startDate?: string; endDate?: string }) =>
+  !data.startDate || !data.endDate || new Date(data.endDate) >= new Date(data.startDate);
 
 const createProjectSchema = baseProjectSchema.refine(datesAreValid, {
   message: "endDate must be greater than or equal to startDate",
@@ -46,18 +35,8 @@ projectsRouter.get("/", listProjects);
 
 projectsRouter.get("/:id", getProject);
 
-projectsRouter.post(
-  "/",
-  authorize("Admin", "Project Manager"),
-  validateBody(createProjectSchema),
-  createProject,
-);
+projectsRouter.post("/", authorize("Admin", "Project Manager"), validateBody(createProjectSchema), createProject);
 
-projectsRouter.patch(
-  "/:id",
-  authorize("Admin", "Project Manager"),
-  validateBody(updateProjectSchema),
-  updateProject,
-);
+projectsRouter.patch("/:id", authorize("Admin", "Project Manager"), validateBody(updateProjectSchema), updateProject);
 
 projectsRouter.delete("/:id", authorize("Admin", "Project Manager"), deleteProject);

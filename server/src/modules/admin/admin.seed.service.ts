@@ -3,13 +3,13 @@ import { prisma } from "../../lib/prisma";
 import { HttpError } from "../../middleware/error-handler";
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000);
-const daysFrom = (base: Date, n: number) =>
-  new Date(base.getTime() + n * 86_400_000);
+const daysFrom = (base: Date, n: number) => new Date(base.getTime() + n * 86_400_000);
 
 export async function seedDatabase() {
   const alreadySeeded = await prisma.project.findFirst({
     where: { name: "Projex Platform" },
   });
+
   if (alreadySeeded) throw new HttpError(409, "Already seeded");
 
   const roles = await prisma.role.findMany();
@@ -65,6 +65,7 @@ export async function seedDatabase() {
   const adminUser = await prisma.user.findFirst({
     where: { role: { name: "Admin" } },
   });
+
   if (!adminUser) throw new HttpError(500, "Admin not found");
 
   const allUsers = [adminUser, ...createdUsers];
@@ -134,7 +135,6 @@ export async function seedDatabase() {
   // ── Sprint 1 tasks (10, 8 done) ────────────────────────────────────────────
 
   type TS = "todo" | "in_progress" | "in_review" | "done" | "blocked";
-  type TP = "low" | "medium" | "high" | "critical";
 
   const t1 = await prisma.$transaction([
     prisma.task.create({
@@ -629,12 +629,7 @@ export async function seedDatabase() {
   // ── Task history ───────────────────────────────────────────────────────────
 
   // Helper: build history for a done task (spread over sprint days)
-  function doneHistory(
-    taskId: bigint,
-    sprintStart: Date,
-    offsetDays: number,
-    changedBy: bigint,
-  ) {
+  function doneHistory(taskId: bigint, sprintStart: Date, offsetDays: number, changedBy: bigint) {
     return [
       {
         taskId,

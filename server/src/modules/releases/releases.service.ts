@@ -63,9 +63,7 @@ export async function getReleaseByIdDetail(id: bigint) {
   });
 }
 
-export async function getReleasesWhere(
-  where: Prisma.ReleaseWhereInput | undefined,
-) {
+export async function getReleasesWhere(where: Prisma.ReleaseWhereInput | undefined) {
   return prisma.release.findMany({
     where,
     include: releaseInclude,
@@ -116,9 +114,6 @@ export async function deleteReleaseRecord(id: bigint) {
   return prisma.release.delete({ where: { id } });
 }
 
-export async function createReleaseFromSprintRecord(
-  sprintId: bigint,
-  version: string,
-) {
+export async function createReleaseFromSprintRecord(sprintId: bigint, version: string) {
   return prisma.$executeRaw`CALL sp_create_release_from_sprint(${sprintId}, ${version})`;
 }

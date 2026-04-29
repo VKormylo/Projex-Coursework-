@@ -40,25 +40,11 @@ export const releasesRouter = Router();
 releasesRouter.get("/", listReleases);
 releasesRouter.get("/:id", getRelease);
 
-releasesRouter.post(
-  "/",
-  authorize("Admin", "Project Manager"),
-  validateBody(createReleaseSchema),
-  createRelease,
-);
+releasesRouter.post("/", authorize("Admin", "Project Manager"), validateBody(createReleaseSchema), createRelease);
 
-releasesRouter.patch(
-  "/:id",
-  authorize("Admin", "Project Manager"),
-  validateBody(updateReleaseSchema),
-  updateRelease,
-);
+releasesRouter.patch("/:id", authorize("Admin", "Project Manager"), validateBody(updateReleaseSchema), updateRelease);
 
-releasesRouter.delete(
-  "/:id",
-  authorize("Admin", "Project Manager"),
-  deleteRelease,
-);
+releasesRouter.delete("/:id", authorize("Admin", "Project Manager"), deleteRelease);
 
 releasesRouter.post(
   "/from-sprint",

@@ -11,9 +11,7 @@ import { apiRouter } from "./routes";
 
 export const app = express();
 
-app.set("json replacer", (_key: string, value: unknown) =>
-  typeof value === "bigint" ? value.toString() : value,
-);
+app.set("json replacer", (_key: string, value: unknown) => (typeof value === "bigint" ? value.toString() : value));
 
 app.use(helmet());
 app.use(cors({ origin: env.corsOrigin, credentials: true }));

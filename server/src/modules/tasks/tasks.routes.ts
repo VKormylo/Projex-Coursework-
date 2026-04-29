@@ -45,12 +45,7 @@ tasksRouter.get("/:id/history", getTaskHistory);
 
 tasksRouter.get("/:id", getTask);
 
-tasksRouter.post(
-  "/",
-  authorize("Admin", "Project Manager", "Developer"),
-  validateBody(createTaskSchema),
-  createTask,
-);
+tasksRouter.post("/", authorize("Admin", "Project Manager", "Developer"), validateBody(createTaskSchema), createTask);
 
 tasksRouter.patch(
   "/:id",
@@ -59,11 +54,7 @@ tasksRouter.patch(
   updateTask,
 );
 
-tasksRouter.delete(
-  "/:id",
-  authorize("Admin", "Project Manager"),
-  deleteTask,
-);
+tasksRouter.delete("/:id", authorize("Admin", "Project Manager"), deleteTask);
 
 tasksRouter.patch(
   "/:id/status",

@@ -9,9 +9,7 @@ const projectInclude = {
   tasks: true,
 } as const;
 
-export async function getProjectsWhere(
-  where: Prisma.ProjectWhereInput | undefined,
-) {
+export async function getProjectsWhere(where: Prisma.ProjectWhereInput | undefined) {
   return prisma.project.findMany({
     where,
     include: projectInclude,
@@ -23,6 +21,7 @@ export async function getProjectById(id: bigint) {
     where: { id },
     include: projectInclude,
   });
+
   if (!project) throw new HttpError(404, "Project not found");
   return project;
 }
@@ -62,13 +61,11 @@ export async function createProjectRecord(payload: {
 export async function deleteProjectRecord(id: bigint) {
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) throw new HttpError(404, "Project not found");
+
   return prisma.project.delete({ where: { id } });
 }
 
-export async function updateProjectRecord(
-  id: bigint,
-  data: Record<string, string>,
-) {
+export async function updateProjectRecord(id: bigint, data: Record<string, string>) {
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) throw new HttpError(404, "Project not found");
 

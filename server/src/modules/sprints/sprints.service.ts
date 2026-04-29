@@ -5,9 +5,7 @@ import { HttpError } from "../../middleware/error-handler";
 
 const sprintInclude = { tasks: true } as const;
 
-export async function getSprintsWhere(
-  where: Prisma.SprintWhereInput | undefined,
-) {
+export async function getSprintsWhere(where: Prisma.SprintWhereInput | undefined) {
   return prisma.sprint.findMany({
     where,
     include: sprintInclude,
@@ -19,6 +17,7 @@ export async function getSprintById(id: bigint) {
     where: { id },
     include: sprintInclude,
   });
+
   if (!sprint) throw new HttpError(404, "Sprint not found");
   return sprint;
 }
@@ -49,6 +48,7 @@ export async function updateSprintRecord(
 ) {
   const sprint = await prisma.sprint.findUnique({ where: { id } });
   if (!sprint) throw new HttpError(404, "Sprint not found");
+
   return prisma.sprint.update({
     where: { id },
     data,
@@ -62,12 +62,15 @@ export async function closeSprintById(sprintId: bigint) {
 
 export async function deleteSprintRecord(id: bigint) {
   const sprint = await prisma.sprint.findUnique({ where: { id } });
+
   if (!sprint) throw new HttpError(404, "Sprint not found");
   if (sprint.status === "active") {
     throw new HttpError(400, "Cannot delete an active sprint. Close it first.");
   }
+
   if (sprint.status === "closed") {
     await prisma.task.deleteMany({ where: { sprintId: id } });
   }
+
   await prisma.sprint.delete({ where: { id } });
 }

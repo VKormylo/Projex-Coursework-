@@ -1,9 +1,6 @@
 import { Request, Response } from "express";
 
-import {
-  assertProjectWritable,
-  getAccessibleProjectIds,
-} from "../../lib/access";
+import { assertProjectWritable, getAccessibleProjectIds } from "../../lib/access";
 import { asBigInt } from "../../lib/http";
 import { prisma } from "../../lib/prisma";
 import type { ReleaseStatus } from "@prisma/client";
@@ -44,19 +41,13 @@ function serializeReleaseLite(release: ReleaseListRow) {
 
 export async function getRelease(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
-  const projectIds = await getAccessibleProjectIds(
-    BigInt(req.user.userId),
-    req.user.roles,
-  );
+  const projectIds = await getAccessibleProjectIds(BigInt(req.user.userId), req.user.roles);
 
   const id = asBigInt(req.params.id);
   const release = await getReleaseByIdDetail(id);
   if (!release) throw new HttpError(404, "Release not found");
 
-  if (
-    projectIds !== null &&
-    !projectIds.some((pid) => pid === release.projectId)
-  ) {
+  if (projectIds !== null && !projectIds.some((pid) => pid === release.projectId)) {
     throw new HttpError(403, "Forbidden");
   }
 
@@ -99,18 +90,21 @@ export async function getRelease(req: Request, res: Response) {
 
 export async function listReleases(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
+
   if (projectIds !== null && projectIds.length === 0) {
     return res.status(200).json({
       status: "success",
       data: { releases: [] },
     });
   }
-  const where =
-    projectIds === null ? undefined : { projectId: { in: projectIds } };
+
+  const where = projectIds === null ? undefined : { projectId: { in: projectIds } };
   const releases = await getReleasesWhere(where);
   const serialized = releases.map((r) => serializeReleaseLite(r));
+
   res.status(200).json({ status: "success", data: { releases: serialized } });
 }
 
@@ -150,12 +144,14 @@ export async function createRelease(req: Request, res: Response) {
       id: release.project.id.toString(),
     },
   };
+
   res.status(201).json({ status: "success", data: { release: serialized } });
 }
 
 export async function updateRelease(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const existing = await prisma.release.findUnique({ where: { id } });
+
   if (!existing) throw new HttpError(404, "Release not found");
   await assertProjectWritable(req, existing.projectId);
 
@@ -191,15 +187,18 @@ export async function updateRelease(req: Request, res: Response) {
       id: release.project.id.toString(),
     },
   };
+
   res.status(200).json({ status: "success", data: { release: serialized } });
 }
 
 export async function deleteRelease(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const existing = await prisma.release.findUnique({ where: { id } });
+
   if (!existing) throw new HttpError(404, "Release not found");
   await assertProjectWritable(req, existing.projectId);
   await deleteReleaseRecord(id);
+
   res.status(200).json({ status: "success", message: "Release deleted" });
 }
 
@@ -208,10 +207,12 @@ export async function createReleaseFromSprint(req: Request, res: Response) {
   const sprint = await prisma.sprint.findUnique({
     where: { id: sprintId },
   });
+
   if (!sprint) throw new HttpError(404, "Sprint not found");
   await assertProjectWritable(req, sprint.projectId);
   const version = req.body.version as string;
   await createReleaseFromSprintRecord(sprintId, version);
+
   res.status(201).json({
     status: "success",
     message: "Release created",

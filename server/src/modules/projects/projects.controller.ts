@@ -19,11 +19,12 @@ import {
 
 export async function listProjects(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
-  const where =
-    projectIds === null ? undefined : { id: { in: projectIds } };
+  const where = projectIds === null ? undefined : { id: { in: projectIds } };
   const projects = await getProjectsWhere(where);
+
   res.status(200).json({
     status: "success",
     data: { projects },
@@ -32,8 +33,10 @@ export async function listProjects(req: Request, res: Response) {
 
 export async function getProject(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
+
   await assertProjectReadable(req, id);
   const project = await getProjectById(id);
+
   res.status(200).json({
     status: "success",
     data: { project },
@@ -43,6 +46,7 @@ export async function getProject(req: Request, res: Response) {
 export async function createProject(req: Request, res: Response) {
   await assertCreateProject(req, asBigInt(req.body.teamId));
   const project = await createProjectRecord(req.body);
+
   res.status(201).json({
     status: "success",
     data: { project },
@@ -53,6 +57,7 @@ export async function deleteProject(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   await assertProjectReadable(req, id);
   await deleteProjectRecord(id);
+
   res.status(200).json({ status: "success", data: null });
 }
 
@@ -60,6 +65,7 @@ export async function updateProject(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   await getProjectById(id);
   await assertProjectReadable(req, id);
+
   const body = req.body as Record<string, string>;
   if (body.teamId) {
     const newTeamId = asBigInt(body.teamId);
@@ -69,7 +75,9 @@ export async function updateProject(req: Request, res: Response) {
       }
     }
   }
+
   const project = await updateProjectRecord(id, body);
+
   res.status(200).json({
     status: "success",
     data: { project },

@@ -32,6 +32,7 @@ export async function getTeamById(id: bigint) {
     where: { id },
     include: teamInclude,
   });
+
   if (!team) throw new HttpError(404, "Team not found");
   return team;
 }
@@ -45,6 +46,7 @@ export async function createTeamRecord(data: { name: string }) {
 
 export async function updateTeamRecord(id: bigint, name: string) {
   await getTeamById(id);
+
   return prisma.team.update({
     where: { id },
     data: { name },
@@ -68,11 +70,13 @@ export async function upsertTeamMember(teamId: bigint, userId: bigint) {
 
 export async function deleteTeamRecord(id: bigint) {
   await getTeamById(id);
+
   return prisma.team.delete({ where: { id } });
 }
 
 export async function removeTeamMember(teamId: bigint, userId: bigint) {
   await getTeamById(teamId);
+
   try {
     await prisma.teamMember.delete({
       where: { teamId_userId: { teamId, userId } },

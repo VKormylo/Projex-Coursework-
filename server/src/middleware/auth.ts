@@ -12,9 +12,11 @@ export async function authenticate(
   next: NextFunction,
 ) {
   const header = req.headers.authorization;
+
   if (!header?.startsWith("Bearer ")) {
     return next(new HttpError(401, "Missing or invalid Authorization header"));
   }
+
   const token = header.split(" ")[1];
 
   let payload: JwtPayload;
@@ -41,11 +43,13 @@ export async function authenticate(
   }
 
   const roles: AppRole[] = user.role ? [user.role.name as AppRole] : [];
+
   req.user = {
     userId: payload.userId,
     email: user.email,
     roles,
   };
+
   return next();
 }
 
@@ -54,10 +58,13 @@ export function authorize(...roles: AppRole[]) {
     if (!req.user) {
       return next(new HttpError(401, "Not authenticated"));
     }
+
     const hasRole = req.user.roles.some((r) => roles.includes(r));
+
     if (!hasRole) {
       return next(new HttpError(403, "Forbidden"));
     }
+
     return next();
   };
 }

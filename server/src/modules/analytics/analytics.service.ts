@@ -5,10 +5,9 @@ import { prisma } from "../../lib/prisma";
 export async function fetchProjectTaskSummary(projectIds: bigint[] | null) {
   if (projectIds !== null && projectIds.length === 0) return [];
   if (projectIds === null) {
-    return prisma.$queryRaw<
-      Record<string, unknown>[]
-    >`SELECT * FROM vw_project_task_summary`;
+    return prisma.$queryRaw<Record<string, unknown>[]>`SELECT * FROM vw_project_task_summary`;
   }
+
   return prisma.$queryRaw<
     Record<string, unknown>[]
   >`SELECT * FROM vw_project_task_summary WHERE project_id IN (${Prisma.join(projectIds)})`;
@@ -17,10 +16,9 @@ export async function fetchProjectTaskSummary(projectIds: bigint[] | null) {
 export async function fetchSprintVelocity(projectIds: bigint[] | null) {
   if (projectIds !== null && projectIds.length === 0) return [];
   if (projectIds === null) {
-    return prisma.$queryRaw<
-      Record<string, unknown>[]
-    >`SELECT * FROM vw_sprint_velocity`;
+    return prisma.$queryRaw<Record<string, unknown>[]>`SELECT * FROM vw_sprint_velocity`;
   }
+
   return prisma.$queryRaw<
     Record<string, unknown>[]
   >`SELECT * FROM vw_sprint_velocity WHERE project_id IN (${Prisma.join(projectIds)})`;
@@ -64,10 +62,7 @@ export interface WorkloadEntry {
   storyPoints: number;
 }
 
-export async function fetchSprintStats(
-  sprintId: bigint,
-  projectIds: bigint[] | null,
-): Promise<SprintStats | null> {
+export async function fetchSprintStats(sprintId: bigint, projectIds: bigint[] | null): Promise<SprintStats | null> {
   type SprintRow = {
     sprint_id: bigint;
     sprint_name: string;
@@ -114,10 +109,7 @@ export async function fetchSprintStats(
   if (!sprintRow) return null;
 
   // Verify the sprint belongs to an accessible project
-  if (
-    projectIds !== null &&
-    !projectIds.some((id) => id === sprintRow.project_id)
-  ) {
+  if (projectIds !== null && !projectIds.some((id) => id === sprintRow.project_id)) {
     return null;
   }
 
@@ -186,12 +178,7 @@ export async function fetchSprintStats(
   const n = Number;
   const plannedSp = n(sprintRow.planned_sp);
   const completedSp = n(sprintRow.completed_sp);
-  const daysToEnd = Math.max(
-    0,
-    Math.ceil(
-      (new Date(sprintRow.end_date).getTime() - Date.now()) / 86_400_000,
-    ),
-  );
+  const daysToEnd = Math.max(0, Math.ceil((new Date(sprintRow.end_date).getTime() - Date.now()) / 86_400_000));
 
   return {
     sprintId: n(sprintRow.sprint_id),
@@ -202,8 +189,7 @@ export async function fetchSprintStats(
     status: sprintRow.status,
     plannedSp,
     completedSp,
-    completionPercentage:
-      plannedSp === 0 ? 0 : Math.round((completedSp / plannedSp) * 100),
+    completionPercentage: plannedSp === 0 ? 0 : Math.round((completedSp / plannedSp) * 100),
     totalTasks: n(sprintRow.total_tasks),
     doneTasks: n(sprintRow.done_tasks),
     todoTasks: n(sprintRow.todo_tasks),
@@ -224,16 +210,12 @@ export async function fetchSprintStats(
       taskCount: n(r.task_count),
       storyPoints: n(r.story_points),
     })),
-    avgTaskDurationDays: durationRow.avg_days
-      ? parseFloat(durationRow.avg_days)
-      : null,
+    avgTaskDurationDays: durationRow.avg_days ? parseFloat(durationRow.avg_days) : null,
     daysToEnd,
   };
 }
 
-export async function findDefaultSprintId(
-  projectIds: bigint[] | null,
-): Promise<bigint | null> {
+export async function findDefaultSprintId(projectIds: bigint[] | null): Promise<bigint | null> {
   type Row = { id: bigint };
 
   if (projectIds !== null && projectIds.length === 0) return null;

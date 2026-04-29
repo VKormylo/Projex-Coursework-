@@ -12,9 +12,11 @@ import { fetchReportData } from "./analytics.report.service";
 
 export async function projectTaskSummary(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
   const summary = await fetchProjectTaskSummary(projectIds);
+
   res.status(200).json({
     status: "success",
     data: { summary },
@@ -23,9 +25,11 @@ export async function projectTaskSummary(req: Request, res: Response) {
 
 export async function sprintVelocity(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
   const velocity = await fetchSprintVelocity(projectIds);
+
   res.status(200).json({
     status: "success",
     data: { velocity },
@@ -34,6 +38,7 @@ export async function sprintVelocity(req: Request, res: Response) {
 
 export async function sprintStats(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
 
@@ -44,10 +49,7 @@ export async function sprintStats(req: Request, res: Response) {
     sprintId = BigInt(parsed);
   } else {
     const defaultId = await findDefaultSprintId(projectIds);
-    if (!defaultId)
-      return res
-        .status(200)
-        .json({ status: "success", data: { stats: null } });
+    if (!defaultId) return res.status(200).json({ status: "success", data: { stats: null } });
     sprintId = defaultId;
   }
 
@@ -59,6 +61,7 @@ export async function sprintStats(req: Request, res: Response) {
 
 export async function reportData(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, "Not authenticated");
+
   const userId = BigInt(req.user.userId);
   const projectIds = await getAccessibleProjectIds(userId, req.user.roles);
 
@@ -69,8 +72,7 @@ export async function reportData(req: Request, res: Response) {
     sprintId = BigInt(parsed);
   } else {
     const defaultId = await findDefaultSprintId(projectIds);
-    if (!defaultId)
-      return res.status(200).json({ status: "success", data: { report: null } });
+    if (!defaultId) return res.status(200).json({ status: "success", data: { report: null } });
     sprintId = defaultId;
   }
 

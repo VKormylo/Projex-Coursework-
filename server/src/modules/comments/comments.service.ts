@@ -13,11 +13,7 @@ export async function getCommentsByTask(taskId: bigint) {
   });
 }
 
-export async function createCommentRecord(data: {
-  taskId: bigint;
-  authorId: bigint;
-  body: string;
-}) {
+export async function createCommentRecord(data: { taskId: bigint; authorId: bigint; body: string }) {
   const task = await prisma.task.findUnique({ where: { id: data.taskId } });
   if (!task) throw new HttpError(404, "Task not found");
 

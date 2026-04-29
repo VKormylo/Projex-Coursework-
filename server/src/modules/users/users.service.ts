@@ -22,19 +22,17 @@ export async function getUserByEmail(email: string) {
   return prisma.user.findUnique({ where: { email }, select: userPublicSelect });
 }
 
-export async function createUserRecord(data: {
-  fullName: string;
-  email: string;
-  password: string;
-  position: string;
-}) {
+export async function createUserRecord(data: { fullName: string; email: string; password: string; position: string }) {
   const existing = await prisma.user.findUnique({
     where: { email: data.email },
   });
+
   if (existing) {
     throw new HttpError(409, "Email already used");
   }
+
   const passwordHash = await bcrypt.hash(data.password, 10);
+
   return prisma.user.create({
     data: {
       fullName: data.fullName,
@@ -74,13 +72,16 @@ export async function patchUserRecord(
   },
 ) {
   const user = await prisma.user.findUnique({ where: { id } });
+
   if (!user) throw new HttpError(404, "User not found");
   if (data.email !== undefined && data.email !== user.email) {
     const taken = await prisma.user.findUnique({
       where: { email: data.email },
     });
+
     if (taken) throw new HttpError(409, "Email already used");
   }
+
   return prisma.user.update({
     where: { id },
     data: {

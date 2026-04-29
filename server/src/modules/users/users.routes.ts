@@ -3,14 +3,7 @@ import { z } from "zod";
 
 import { authorize } from "../../middleware/auth";
 import { validateBody } from "../../middleware/validate";
-import {
-  assignRoleToUser,
-  createUser,
-  findUserByEmail,
-  listRoles,
-  listUsers,
-  updateUser,
-} from "./users.controller";
+import { assignRoleToUser, createUser, findUserByEmail, listRoles, listUsers, updateUser } from "./users.controller";
 
 const createUserSchema = z.object({
   fullName: z.string().min(2).max(150),
@@ -31,43 +24,20 @@ const patchUserSchema = z
     isActive: z.boolean().optional(),
   })
   .refine(
-    (d) =>
-      d.fullName !== undefined ||
-      d.position !== undefined ||
-      d.email !== undefined ||
-      d.isActive !== undefined,
+    (d) => d.fullName !== undefined || d.position !== undefined || d.email !== undefined || d.isActive !== undefined,
     { message: "At least one field is required" },
   );
 
 export const usersRouter = Router();
 
 usersRouter.get("/", authorize("Admin"), listUsers);
-usersRouter.get(
-  "/by-email",
-  authorize("Admin", "Project Manager"),
-  findUserByEmail,
-);
+usersRouter.get("/by-email", authorize("Admin", "Project Manager"), findUserByEmail);
 
-usersRouter.post(
-  "/",
-  authorize("Admin"),
-  validateBody(createUserSchema),
-  createUser,
-);
+usersRouter.post("/", authorize("Admin"), validateBody(createUserSchema), createUser);
 
-usersRouter.post(
-  "/:id/roles",
-  authorize("Admin"),
-  validateBody(assignRoleSchema),
-  assignRoleToUser,
-);
+usersRouter.post("/:id/roles", authorize("Admin"), validateBody(assignRoleSchema), assignRoleToUser);
 
-usersRouter.patch(
-  "/:id",
-  authorize("Admin"),
-  validateBody(patchUserSchema),
-  updateUser,
-);
+usersRouter.patch("/:id", authorize("Admin"), validateBody(patchUserSchema), updateUser);
 
 export const rolesRouter = Router();
 

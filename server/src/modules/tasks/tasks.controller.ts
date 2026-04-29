@@ -1,16 +1,7 @@
-import {
-  Prisma,
-  TaskPriority,
-  TaskStatus,
-} from "@prisma/client";
+import { Prisma, TaskPriority, TaskStatus } from "@prisma/client";
 import { Request, Response } from "express";
 
-import {
-  assertTaskCreate,
-  assertTaskReadable,
-  assertTaskWritable,
-  getAccessibleProjectIds,
-} from "../../lib/access";
+import { assertTaskCreate, assertTaskReadable, assertTaskWritable, getAccessibleProjectIds } from "../../lib/access";
 import { asBigInt } from "../../lib/http";
 import { HttpError } from "../../middleware/error-handler";
 import {
@@ -41,6 +32,7 @@ export async function listTasks(req: Request, res: Response) {
     if (accessible.length === 0) {
       return res.status(200).json({ status: "success", data: { tasks: [] } });
     }
+
     const pid = where.projectId as bigint | undefined;
     if (pid !== undefined) {
       if (!accessible.includes(pid)) {
@@ -70,6 +62,7 @@ export async function getTask(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const task = await getTaskById(id);
   await assertTaskReadable(req, task);
+
   res.status(200).json({
     status: "success",
     data: { task },
@@ -81,6 +74,7 @@ export async function getTaskHistory(req: Request, res: Response) {
   const task = await getTaskById(id);
   await assertTaskReadable(req, task);
   const history = await getTaskHistoryRecords(id);
+
   res.status(200).json({
     status: "success",
     data: { history },
@@ -91,6 +85,7 @@ export async function createTask(req: Request, res: Response) {
   const reporterId = asBigInt(req.body.reporterId);
   await assertTaskCreate(req, asBigInt(req.body.projectId), reporterId);
   const task = await createTaskRecord(req.body);
+
   res.status(201).json({
     status: "success",
     data: { task },
@@ -101,6 +96,7 @@ export async function updateTask(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const existing = await getTaskById(id);
   await assertTaskWritable(req, existing);
+
   const body = req.body as {
     title?: string;
     description?: string | null;
@@ -110,7 +106,9 @@ export async function updateTask(req: Request, res: Response) {
     assigneeId?: string | null;
     dueDate?: string | null;
   };
+
   const task = await updateTaskRecord(id, body);
+
   res.status(200).json({
     status: "success",
     data: { task },
@@ -120,8 +118,10 @@ export async function updateTask(req: Request, res: Response) {
 export async function deleteTask(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const existing = await getTaskById(id);
+
   await assertTaskWritable(req, existing);
   await deleteTaskRecord(id);
+
   res.status(200).json({
     status: "success",
     data: null,
@@ -131,9 +131,12 @@ export async function deleteTask(req: Request, res: Response) {
 export async function updateTaskStatus(req: Request, res: Response) {
   const id = asBigInt(req.params.id);
   const existing = await getTaskById(id);
+
   await assertTaskWritable(req, existing);
+
   const nextStatus = req.body.status as TaskStatus;
   const task = await updateTaskStatusRecord(id, nextStatus, req.user?.userId);
+
   res.status(200).json({
     status: "success",
     data: { task },
