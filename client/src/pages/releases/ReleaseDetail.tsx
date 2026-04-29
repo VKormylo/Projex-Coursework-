@@ -111,6 +111,7 @@ export default function ReleaseDetail() {
 
   const tasks = release.sprint?.tasks ?? [];
   const doneCount = tasks.filter((t) => t.status === "done").length;
+  // An empty sprint counts as "all done" so a release without tasks can still be completed.
   const allDone = tasks.length === 0 || doneCount === tasks.length;
   const storyPointsTotal = tasks.reduce((s, t) => s + (t.storyPoint ?? 0), 0);
 

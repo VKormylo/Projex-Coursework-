@@ -288,7 +288,9 @@ export default function Board() {
     const newStatus = destination.droppableId as ApiTaskStatus;
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });
 
-    // Optimistic update in cache
+    // Optimistic update: mutate the cache immediately so the card jumps
+    // columns without waiting for the API response. The key must include all
+    // active filter values — React Query uses exact key equality to locate the entry.
     queryClient.setQueryData(
       [
         "board-tasks",

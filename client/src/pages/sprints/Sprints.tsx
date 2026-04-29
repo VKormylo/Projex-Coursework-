@@ -97,10 +97,14 @@ export default function Sprints() {
       ?.map((m) => m.user)
       .filter((u) => u.isActive && u.role?.name === "Developer")
       .map((u) => ({ id: u.id, fullName: u.fullName })) ?? [];
+  // Derived from allTasks so both panels share the same fetched list without extra queries.
   const backlogTasks = allTasks.filter((t) => t.sprintId === null);
   const sprintTasks = planningSprint ? allTasks.filter((t) => t.sprintId === planningSprint.id) : [];
   const totalSP = sprintTasks.reduce((s, t) => s + (t.storyPoint ?? 0), 0);
 
+  // Auto-select a sprint when the list changes (e.g. after create/delete).
+  // Prefers the active sprint so the planner opens on the current sprint by default.
+  // If the previously selected sprint disappears (deleted/filtered), resets to the first available.
   useEffect(() => {
     if (selectableSprints.length === 0) {
       setSelectedPlanningSprintId("");

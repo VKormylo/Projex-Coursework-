@@ -18,10 +18,7 @@ import {
 } from "recharts";
 
 import DashboardLayout from "~/components/dashboard-layout/DashboardLayout";
-import {
-  analyticsService,
-  type SprintStats,
-} from "~/services/analytics-service";
+import { analyticsService, type SprintStats } from "~/services/analytics-service";
 import { projectService } from "~/services/project-service";
 import { sprintService } from "~/services/sprint-service";
 import { ChevronDownIcon } from "~/components/svg/Svg";
@@ -80,9 +77,7 @@ function ChartCard({
   className?: string;
 }) {
   return (
-    <div
-      className={`flex flex-col rounded-[14px] border border-black/10 bg-white ${className}`}
-    >
+    <div className={`flex flex-col rounded-[14px] border border-black/10 bg-white ${className}`}>
       <div className="border-b border-transparent px-6 pt-6 pb-4">
         <p className="text-base font-medium text-[#0a0a0a]">{title}</p>
         <p className="mt-0.5 text-sm text-[#717182]">{description}</p>
@@ -102,31 +97,15 @@ function VelocityChart({ stats }: { stats: SprintStats }) {
   }));
 
   if (data.length === 0) {
-    return (
-      <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">
-        Дані відсутні
-      </div>
-    );
+    return <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">Дані відсутні</div>;
   }
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart
-        data={data}
-        margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
-      >
+      <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-        <XAxis
-          dataKey="name"
-          tick={{ fontSize: 12, fill: "#64748b" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={{ fontSize: 12, fill: "#64748b" }}
-          axisLine={false}
-          tickLine={false}
-        />
+        <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={{
             borderRadius: 8,
@@ -137,13 +116,7 @@ function VelocityChart({ stats }: { stats: SprintStats }) {
         />
         <Legend
           wrapperStyle={{ fontSize: 14, paddingTop: 8 }}
-          formatter={(value) => (
-            <span
-              style={{ color: value === "Заплановано" ? "#3b82f6" : "#10b981" }}
-            >
-              {value}
-            </span>
-          )}
+          formatter={(value) => <span style={{ color: value === "Заплановано" ? "#3b82f6" : "#10b981" }}>{value}</span>}
         />
         <Line
           type="monotone"
@@ -187,9 +160,7 @@ function TaskDistChart({ stats }: { stats: SprintStats }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">
-        Немає задач у спринті
-      </div>
+      <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">Немає задач у спринті</div>
     );
   }
 
@@ -204,9 +175,7 @@ function TaskDistChart({ stats }: { stats: SprintStats }) {
           outerRadius={100}
           paddingAngle={2}
           dataKey="value"
-          label={({ name, percent }) =>
-            `${name}: ${Math.round(percent * 100)}%`
-          }
+          label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}
           labelLine={false}
         >
           {data.map((entry) => (
@@ -240,28 +209,15 @@ function WorkloadChart({ stats }: { stats: SprintStats }) {
   }));
 
   if (data.length === 0) {
-    return (
-      <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">
-        Дані відсутні
-      </div>
-    );
+    return <div className="flex h-[260px] items-center justify-center text-sm text-[#64748b]">Дані відсутні</div>;
   }
 
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-        <XAxis
-          dataKey="name"
-          tick={{ fontSize: 12, fill: "#64748b" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={{ fontSize: 12, fill: "#64748b" }}
-          axisLine={false}
-          tickLine={false}
-        />
+        <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={{
             borderRadius: 8,
@@ -271,12 +227,7 @@ function WorkloadChart({ stats }: { stats: SprintStats }) {
           labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName ?? ""}
         />
         <Legend wrapperStyle={{ fontSize: 14, paddingTop: 8 }} />
-        <Bar
-          dataKey="Story Points"
-          fill="#3b82f6"
-          radius={[6, 6, 0, 0]}
-          maxBarSize={48}
-        />
+        <Bar dataKey="Story Points" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={48} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -293,18 +244,9 @@ interface MetricRowProps {
   last?: boolean;
 }
 
-function MetricRow({
-  label,
-  sublabel,
-  value,
-  unit,
-  valueColor = "#0f172b",
-  last,
-}: MetricRowProps) {
+function MetricRow({ label, sublabel, value, unit, valueColor = "#0f172b", last }: MetricRowProps) {
   return (
-    <div
-      className={`flex items-center justify-between py-5 ${last ? "" : "border-b border-[#e2e8f0]"}`}
-    >
+    <div className={`flex items-center justify-between py-5 ${last ? "" : "border-b border-[#e2e8f0]"}`}>
       <div>
         <p className="text-base font-medium text-[#0f172b]">{label}</p>
         <p className="mt-0.5 text-sm text-[#45556c]">{sublabel}</p>
@@ -324,35 +266,12 @@ function MetricRow({
 function EmptyState() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center py-24 text-center">
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 48 48"
-        fill="none"
-        className="mb-4 text-[#e2e8f0]"
-      >
-        <rect
-          x="4"
-          y="4"
-          width="40"
-          height="40"
-          rx="8"
-          stroke="currentColor"
-          strokeWidth="2.5"
-        />
-        <path
-          d="M14 34V22M22 34V14M30 34V26M38 34V18"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="mb-4 text-[#e2e8f0]">
+        <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="2.5" />
+        <path d="M14 34V22M22 34V14M30 34V26M38 34V18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
-      <p className="text-base font-medium text-[#0f172b]">
-        Немає даних для відображення
-      </p>
-      <p className="mt-1 text-sm text-[#62748e]">
-        Створіть активний спринт із задачами
-      </p>
+      <p className="text-base font-medium text-[#0f172b]">Немає даних для відображення</p>
+      <p className="mt-1 text-sm text-[#62748e]">Створіть активний спринт із задачами</p>
     </div>
   );
 }
@@ -360,12 +279,8 @@ function EmptyState() {
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function Analytics() {
-  const [selectedProjectId, setSelectedProjectId] = useState<
-    string | undefined
-  >();
-  const [selectedSprintId, setSelectedSprintId] = useState<
-    string | undefined
-  >();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
+  const [selectedSprintId, setSelectedSprintId] = useState<string | undefined>();
   const [projectOpen, setProjectOpen] = useState(false);
   const [sprintOpen, setSprintOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -391,15 +306,13 @@ export default function Analytics() {
     queryFn: () => analyticsService.sprintStats(selectedSprintId),
   });
 
-  const projects = (projectsData?.projects ?? []).filter(
-    (p) => p.status !== "archived",
-  );
+  const projects = (projectsData?.projects ?? []).filter((p) => p.status !== "archived");
   const sprints = sprintsData?.sprints ?? [];
-  const projectSprints = sprints.filter(
-    (s) => !selectedProjectId || s.projectId === selectedProjectId,
-  );
+  const projectSprints = sprints.filter((s) => !selectedProjectId || s.projectId === selectedProjectId);
   const stats: SprintStats | null = statsData?.stats ?? null;
 
+  // Auto-select the first project once the list loads, and clear the
+  // selection if the currently selected project is removed (e.g. archived).
   useEffect(() => {
     if (projects.length === 0) {
       if (selectedProjectId !== undefined) {
@@ -415,6 +328,8 @@ export default function Analytics() {
     }
   }, [projects, selectedProjectId]);
 
+  // Whenever the project changes, pick a sprint automatically.
+  // Priority: active sprint first, then the first in the list.
   useEffect(() => {
     if (!selectedProjectId) {
       if (selectedSprintId !== undefined) {
@@ -447,8 +362,7 @@ export default function Analytics() {
     setSprintOpen(false);
   };
 
-  const projectLabel =
-    projects.find((p) => p.id === selectedProjectId)?.name ?? "Оберіть проєкт";
+  const projectLabel = projects.find((p) => p.id === selectedProjectId)?.name ?? "Оберіть проєкт";
   const sprintLabel =
     projectSprints.find((s) => s.id === selectedSprintId)?.name ??
     (projectSprints.length === 0 ? "Немає спринтів" : "Оберіть спринт");
@@ -464,6 +378,11 @@ export default function Analytics() {
         return;
       }
 
+      // @react-pdf/renderer runs entirely in-browser (web worker).
+      // We get a Blob, turn it into a temporary blob: URL, attach a hidden
+      // <a> and click it — the only reliable cross-browser way to trigger a
+      // named file download without a server round-trip.
+      // revokeObjectURL frees the blob from memory once the download starts.
       const blob = await pdf(<AnalyticsReportPDF data={report} />).toBlob();
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -475,11 +394,7 @@ export default function Analytics() {
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      setExportError(
-        error instanceof Error
-          ? error.message
-          : "Не вдалося згенерувати PDF звіт.",
-      );
+      setExportError(error instanceof Error ? error.message : "Не вдалося згенерувати PDF звіт.");
     } finally {
       setIsExporting(false);
     }
@@ -490,12 +405,8 @@ export default function Analytics() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">
-            Аналітика
-          </h1>
-          <p className="mt-1 text-base text-[#45556c]">
-            Огляд метрик та ефективності команди
-          </p>
+          <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Аналітика</h1>
+          <p className="mt-1 text-base text-[#45556c]">Огляд метрик та ефективності команди</p>
         </div>
         <div className="flex items-center gap-3">
           <div ref={projectRef} className="relative">
@@ -510,9 +421,7 @@ export default function Analytics() {
             {projectOpen ? (
               <div className="absolute left-0 top-full z-30 mt-1 w-full max-h-64 overflow-y-auto rounded-xl border border-[#e2e8f0] bg-white py-1 shadow-lg">
                 {projects.length === 0 ? (
-                  <p className="px-4 py-2 text-sm text-[#62748e]">
-                    Немає проєктів
-                  </p>
+                  <p className="px-4 py-2 text-sm text-[#62748e]">Немає проєктів</p>
                 ) : (
                   projects.map((p) => (
                     <button
@@ -520,9 +429,7 @@ export default function Analytics() {
                       type="button"
                       onClick={() => handleProjectSelect(p.id)}
                       className={`w-full px-4 py-2 text-left text-sm hover:bg-[#f8fafc] ${
-                        p.id === selectedProjectId
-                          ? "font-medium text-[#3b82f6]"
-                          : "text-[#0f172b]"
+                        p.id === selectedProjectId ? "font-medium text-[#3b82f6]" : "text-[#0f172b]"
                       }`}
                     >
                       {p.name}
@@ -554,9 +461,7 @@ export default function Analytics() {
                     type="button"
                     onClick={() => handleSprintSelect(s.id)}
                     className={`w-full px-4 py-2 text-left text-sm hover:bg-[#f8fafc] ${
-                      s.id === selectedSprintId
-                        ? "font-medium text-[#3b82f6]"
-                        : "text-[#0f172b]"
+                      s.id === selectedSprintId ? "font-medium text-[#3b82f6]" : "text-[#0f172b]"
                     }`}
                   >
                     {s.name}
@@ -585,16 +490,10 @@ export default function Analytics() {
           </button>
         </div>
       </div>
-      {exportError ? (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {exportError}
-        </p>
-      ) : null}
+      {exportError ? <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{exportError}</p> : null}
 
       {isLoading ? (
-        <div className="py-24 text-center text-sm text-[#62748e]">
-          Завантаження…
-        </div>
+        <div className="py-24 text-center text-sm text-[#62748e]">Завантаження…</div>
       ) : !stats ? (
         <EmptyState />
       ) : (
@@ -616,32 +515,26 @@ export default function Analytics() {
                 </svg>
               }
             >
-              <p className="text-[30px] font-bold text-[#0f172b]">
-                {stats.completedSp} SP
-              </p>
+              <p className="text-[30px] font-bold text-[#0f172b]">{stats.completedSp} SP</p>
               {(() => {
+                // Locate the current sprint in the shared history array (which
+                // spans all sprints) so we can grab the entry directly before
+                // it. currIdx === 0 means it's the first sprint ever — no
+                // previous to compare against, so delta stays null.
+                // delta is also null when prev === 0 to avoid dividing by zero.
                 const hist = stats.velocityHistory;
-                const currIdx = hist.findIndex(
-                  (v) => v.sprintId === stats.sprintId,
-                );
+                const currIdx = hist.findIndex((v) => v.sprintId === stats.sprintId);
                 const prevEntry = currIdx > 0 ? hist[currIdx - 1] : null;
                 const prev = prevEntry?.completedSp ?? 0;
                 const curr = stats.completedSp;
-                const delta =
-                  !prevEntry || prev === 0
-                    ? null
-                    : Math.round(((curr - prev) / prev) * 100);
+                const delta = !prevEntry || prev === 0 ? null : Math.round(((curr - prev) / prev) * 100);
                 return delta !== null ? (
                   <p className="text-xs font-medium">
-                    <span
-                      className={delta >= 0 ? "text-[#009966]" : "text-red-500"}
-                    >
+                    <span className={delta >= 0 ? "text-[#009966]" : "text-red-500"}>
                       {delta >= 0 ? "+" : ""}
                       {delta}%
                     </span>{" "}
-                    <span className="font-normal text-[#45556c]">
-                      від попереднього спринту
-                    </span>
+                    <span className="font-normal text-[#45556c]">від попереднього спринту</span>
                   </p>
                 ) : null;
               })()}
@@ -652,13 +545,7 @@ export default function Analytics() {
               title="Виконання спринту"
               icon={
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle
-                    cx="8"
-                    cy="8"
-                    r="6"
-                    stroke="#10b981"
-                    strokeWidth="1.4"
-                  />
+                  <circle cx="8" cy="8" r="6" stroke="#10b981" strokeWidth="1.4" />
                   <path
                     d="M5 8.5l2 2 4-4"
                     stroke="#10b981"
@@ -669,9 +556,7 @@ export default function Analytics() {
                 </svg>
               }
             >
-              <p className="text-[30px] font-bold text-[#0f172b]">
-                {stats.completionPercentage}%
-              </p>
+              <p className="text-[30px] font-bold text-[#0f172b]">{stats.completionPercentage}%</p>
               <p className="text-xs text-[#45556c]">
                 {stats.completedSp} з {stats.plannedSp} story points
               </p>
@@ -690,25 +575,12 @@ export default function Analytics() {
               title="Прострочені задачі"
               icon={
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle
-                    cx="8"
-                    cy="8"
-                    r="6"
-                    stroke="#ef4444"
-                    strokeWidth="1.4"
-                  />
-                  <path
-                    d="M8 5v3M8 10.5h.01"
-                    stroke="#ef4444"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
+                  <circle cx="8" cy="8" r="6" stroke="#ef4444" strokeWidth="1.4" />
+                  <path d="M8 5v3M8 10.5h.01" stroke="#ef4444" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>
               }
             >
-              <p className="text-[30px] font-bold text-[#82181a]">
-                {stats.overdueTasks}
-              </p>
+              <p className="text-[30px] font-bold text-[#82181a]">{stats.overdueTasks}</p>
               <p className="text-xs text-[#45556c]">Потребують уваги</p>
             </KpiCard>
 
@@ -723,13 +595,7 @@ export default function Analytics() {
                     strokeWidth="1.3"
                     strokeLinecap="round"
                   />
-                  <circle
-                    cx="6"
-                    cy="5.5"
-                    r="2.5"
-                    stroke="#3b82f6"
-                    strokeWidth="1.3"
-                  />
+                  <circle cx="6" cy="5.5" r="2.5" stroke="#3b82f6" strokeWidth="1.3" />
                   <path
                     d="M13 14v-1.5A2.5 2.5 0 0 0 11 10M10.5 3a2.5 2.5 0 0 1 0 5"
                     stroke="#3b82f6"
@@ -739,9 +605,7 @@ export default function Analytics() {
                 </svg>
               }
             >
-              <p className="text-[30px] font-bold text-[#0f172b]">
-                {stats.activeMembers}
-              </p>
+              <p className="text-[30px] font-bold text-[#0f172b]">{stats.activeMembers}</p>
               <p className="text-xs text-[#45556c]">
                 {stats.workload.length > 0
                   ? `Середня кількість задач: ${(stats.totalTasks / Math.max(stats.activeMembers, 1)).toFixed(1)} на учасника`
@@ -780,21 +644,13 @@ export default function Analytics() {
           {/* Key sprint metrics */}
           <div className="rounded-[14px] border border-black/10 bg-white px-6">
             <div className="border-b border-[#e2e8f0] pb-4 pt-6">
-              <p className="text-base font-medium text-[#0a0a0a]">
-                Ключові метрики спринту
-              </p>
-              <p className="mt-0.5 text-sm text-[#717182]">
-                Детальна інформація по поточному спринту
-              </p>
+              <p className="text-base font-medium text-[#0a0a0a]">Ключові метрики спринту</p>
+              <p className="mt-0.5 text-sm text-[#717182]">Детальна інформація по поточному спринту</p>
             </div>
             <MetricRow
               label="Середня тривалість задачі"
               sublabel="Від взяття в роботу до завершення"
-              value={
-                stats.avgTaskDurationDays !== null
-                  ? stats.avgTaskDurationDays
-                  : "—"
-              }
+              value={stats.avgTaskDurationDays !== null ? stats.avgTaskDurationDays : "—"}
               unit="дні"
             />
             <MetricRow
@@ -834,16 +690,10 @@ export default function Analytics() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <p className="text-base font-medium text-[#0a0a0a]">
-                  Звіт по спринту
-                </p>
+                <p className="text-base font-medium text-[#0a0a0a]">Звіт по спринту</p>
               </div>
-              <p className="mt-1 text-sm text-[#717182]">
-                Експортуйте детальний звіт з усіма метриками та графіками
-              </p>
-              <p className="mt-3 text-sm text-[#45556c]">
-                Формат звіту: PDF • Включає всі графіки та таблиці
-              </p>
+              <p className="mt-1 text-sm text-[#717182]">Експортуйте детальний звіт з усіма метриками та графіками</p>
+              <p className="mt-3 text-sm text-[#45556c]">Формат звіту: PDF • Включає всі графіки та таблиці</p>
             </div>
             <button
               type="button"

@@ -163,6 +163,8 @@ function TasksTable({ tasks, onRowClick }: { tasks: TaskDto[]; onRowClick: (t: T
 // ── By-priority view ──────────────────────────────────────────────────────────
 function ByPriorityView({ tasks, onRowClick }: { tasks: TaskDto[]; onRowClick: (t: TaskDto) => void }) {
   const groups = useMemo(() => {
+    // Pre-initialize every priority key so the final map preserves PRIORITY_ORDER
+    // regardless of which priorities actually appear in the task list.
     const map = new Map<ApiTaskPriority, TaskDto[]>();
     for (const p of PRIORITY_ORDER) map.set(p, []);
     for (const t of tasks) {
@@ -248,6 +250,7 @@ export default function MyTasks() {
 
   const overdueTasks = filtered.filter(isOverdue);
 
+  // Overdue tab shows only the overdue subset; all other tabs use the full filtered list.
   const displayTasks = useMemo(() => {
     if (tab === "overdue") return overdueTasks;
     return filtered;
@@ -340,7 +343,7 @@ export default function MyTasks() {
         <div ref={statusRef} className="relative">
           <button
             onClick={() => setStatusOpen((v) => !v)}
-            className="flex h-9 min-w-[11rem] items-center justify-between gap-2 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b]"
+            className="flex h-9 min-w-44 items-center justify-between gap-2 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b]"
           >
             <span>{statusLabel}</span>
             <ChevronDownIcon className="shrink-0 text-[#62748e]" />
@@ -366,7 +369,7 @@ export default function MyTasks() {
         <div ref={priorityRef} className="relative">
           <button
             onClick={() => setPriorityOpen((v) => !v)}
-            className="flex h-9 min-w-[11rem] items-center justify-between gap-2 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b]"
+            className="flex h-9 min-w-44 items-center justify-between gap-2 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b]"
           >
             <span>{priorityLabel}</span>
             <ChevronDownIcon className="shrink-0 text-[#62748e]" />
