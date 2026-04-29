@@ -260,6 +260,21 @@ function VelocityLabels({ velocity }: { velocity: VelocityBlock }) {
   );
 }
 
+// Planned / completed SP values below sprint name labels
+function VelocityValues({ velocity }: { velocity: VelocityBlock }) {
+  const history = velocity.history.slice(-6);
+  return (
+    <View style={{ flexDirection: "row", paddingLeft: 24, paddingRight: 8, marginTop: 2 }}>
+      {history.map((h, i) => (
+        <View key={i} style={{ flex: 1, alignItems: "center" }}>
+          <Text style={{ fontSize: 6, color: C.blue, textAlign: "center" }}>{h.plannedSp} SP</Text>
+          <Text style={{ fontSize: 6, color: C.green, fontFamily: "Roboto", fontWeight: 700, textAlign: "center" }}>{h.completedSp} SP</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // ── SVG Burndown Chart ─────────────────────────────────────────────────────────
 
 function BurndownChart({ burndown }: { burndown: BurndownBlock }) {
@@ -434,6 +449,7 @@ function Section1({ data }: { data: ReportData }) {
           <Text style={[s.label, { marginBottom: 4 }]}>Velocity по спринтах (останні 6)</Text>
           <VelocityBarChart velocity={velocity} />
           <VelocityLabels velocity={velocity} />
+          <VelocityValues velocity={velocity} />
           <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
               <View style={{ width: 10, height: 6, backgroundColor: C.blue, opacity: 0.4, borderRadius: 1 }} />
@@ -463,6 +479,21 @@ function Section1({ data }: { data: ReportData }) {
               <View style={{ width: 14, height: 2, backgroundColor: C.blue, borderRadius: 1 }} />
               <Text style={s.label}>Фактичний прогрес</Text>
             </View>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4, paddingHorizontal: 2 }}>
+            <Text style={s.label}>
+              Початок:{" "}
+              <Text style={[s.label, { color: C.gray700, fontFamily: "Roboto", fontWeight: 700 }]}>
+                {burndown.points[0].remaining}
+              </Text>{" "}
+              задач
+            </Text>
+            <Text style={[s.label, { color: burndown.points[burndown.points.length - 1].remaining === 0 ? C.green : C.blue }]}>
+              Залишилось:{" "}
+              <Text style={{ fontFamily: "Roboto", fontWeight: 700 }}>
+                {burndown.points[burndown.points.length - 1].remaining}
+              </Text>
+            </Text>
           </View>
         </View>
       )}
