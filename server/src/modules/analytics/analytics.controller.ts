@@ -81,11 +81,3 @@ export async function reportData(req: Request, res: Response) {
 
   res.status(200).json({ status: "success", data: { report } });
 }
-
-export async function exportReportPdf(_req: Request, res: Response) {
-  res.status(501).json({
-    status: "fail",
-    message:
-      "PDF export is not implemented. Use GET /api/analytics/project-summary and /api/analytics/sprint-velocity for JSON data.",
-  });
-}
