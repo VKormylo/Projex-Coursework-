@@ -272,7 +272,7 @@ export default function MyTasks() {
     <DashboardLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold leading-9 text-[#0f172b]">Мої задачі</h1>
+        <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Мої задачі</h1>
         <p className="mt-1 text-sm text-[#62748e]">Всі задачі, призначені вам</p>
       </div>
 

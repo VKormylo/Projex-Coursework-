@@ -776,7 +776,7 @@ function UsersTab({ users, roles }: { users: AdminUserDto[]; roles: RoleDto[] })
     <>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#0f172b]">Адміністрування</h1>
+          <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Адміністрування</h1>
           <p className="text-sm text-[#45556c] mt-1">Керування користувачами та ролями системи</p>
         </div>
         <div className="flex items-center gap-2">
@@ -1088,7 +1088,7 @@ function TeamsTab({
       {/* header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#0f172b]">Команди</h1>
+          <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Команди</h1>
           <p className="text-sm text-[#45556c] mt-1">Керування командами та їх учасниками</p>
         </div>
         {canManage && (

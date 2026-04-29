@@ -130,7 +130,7 @@ export default function ReleaseDetail() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#0f172b]">
+            <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">
               {release.version}
             </h1>
             {release.status === "completed" ? (

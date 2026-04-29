@@ -352,7 +352,7 @@ export default function Board() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold leading-9 text-[#0f172b]">
+            <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">
               Дошка задач
             </h1>
             <p className="mt-1 text-sm text-[#62748e]">

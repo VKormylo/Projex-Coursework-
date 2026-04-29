@@ -320,7 +320,7 @@ export default function Releases() {
       <div className="flex flex-col gap-6">
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[#0f172b]">Релізи</h1>
+            <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Релізи</h1>
             <p className="mt-1 text-base text-[#45556c]">
               Керуйте версіями та релізами продукту
             </p>
