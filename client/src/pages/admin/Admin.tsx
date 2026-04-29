@@ -60,13 +60,7 @@ function mutErrMsg(err: unknown, fallback: string) {
 
 // ─── shared sub-components ────────────────────────────────────────────────────
 
-function UserAvatar({
-  name,
-  size = "md",
-}: {
-  name: string;
-  size?: "sm" | "md";
-}) {
+function UserAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
   const colors = [
     "bg-blue-200 text-blue-800",
     "bg-green-200 text-green-800",
@@ -78,9 +72,7 @@ function UserAvatar({
   const color = colors[name.charCodeAt(0) % colors.length];
   const cls = size === "sm" ? "w-7 h-7 text-xs" : "w-10 h-10 text-sm";
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded-full font-medium ${color} ${cls}`}
-    >
+    <span className={`inline-flex items-center justify-center rounded-full font-medium ${color} ${cls}`}>
       {getInitials(name)}
     </span>
   );
@@ -139,13 +131,8 @@ function CreateUserDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">
-          Додати користувача
-        </h2>
-        <form
-          onSubmit={handleSubmit((d) => createMut.mutate(d))}
-          className="space-y-4"
-        >
+        <h2 className="text-lg font-semibold text-gray-900 mb-5">Додати користувача</h2>
+        <form onSubmit={handleSubmit((d) => createMut.mutate(d))} className="space-y-4">
           {(
             [
               {
@@ -175,31 +162,21 @@ function CreateUserDialog({
             ] as const
           ).map(({ name, label, placeholder, type }) => (
             <div key={name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {label}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
               <input
                 {...register(name)}
                 type={type}
                 placeholder={placeholder}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40"
               />
-              {errors[name] && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[name]?.message}
-                </p>
-              )}
+              {errors[name] && <p className="text-red-500 text-xs mt-1">{errors[name]?.message}</p>}
             </div>
           ))}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Роль
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
             <select
               value={selectedRole ?? ""}
-              onChange={(e) =>
-                setSelectedRole(e.target.value ? Number(e.target.value) : null)
-              }
+              onChange={(e) => setSelectedRole(e.target.value ? Number(e.target.value) : null)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40 bg-white"
             >
               <option value="">Без ролі</option>
@@ -214,12 +191,7 @@ function CreateUserDialog({
             <p className="text-red-500 text-sm">{mutErrMsg(createMut.error, "Помилка при створенні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outlined"
-              className="text-gray-700"
-            >
+            <Button type="button" onClick={onClose} variant="outlined" className="text-gray-700">
               Скасувати
             </Button>
             <Button type="submit" disabled={createMut.isPending}>
@@ -234,20 +206,10 @@ function CreateUserDialog({
 
 // ─── Edit User Dialog ─────────────────────────────────────────────────────────
 
-function EditUserDialog({
-  user,
-  roles,
-  onClose,
-}: {
-  user: AdminUserDto;
-  roles: RoleDto[];
-  onClose: () => void;
-}) {
+function EditUserDialog({ user, roles, onClose }: { user: AdminUserDto; roles: RoleDto[]; onClose: () => void }) {
   const qc = useQueryClient();
   const currentRoleId = user.role?.id ?? null;
-  const [selectedRole, setSelectedRole] = useState<number | null>(
-    currentRoleId,
-  );
+  const [selectedRole, setSelectedRole] = useState<number | null>(currentRoleId);
 
   const {
     register,
@@ -265,8 +227,7 @@ function EditUserDialog({
   const updateMut = useMutation({
     mutationFn: (data: EditUserForm) => userService.update(user.id, data),
     onSuccess: async () => {
-      if (selectedRole && selectedRole !== currentRoleId)
-        await userService.assignRole(user.id, selectedRole);
+      if (selectedRole && selectedRole !== currentRoleId) await userService.assignRole(user.id, selectedRole);
       await qc.invalidateQueries({ queryKey: ["users"] });
       onClose();
     },
@@ -275,13 +236,8 @@ function EditUserDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">
-          Редагувати користувача
-        </h2>
-        <form
-          onSubmit={handleSubmit((d) => updateMut.mutate(d))}
-          className="space-y-4"
-        >
+        <h2 className="text-lg font-semibold text-gray-900 mb-5">Редагувати користувача</h2>
+        <form onSubmit={handleSubmit((d) => updateMut.mutate(d))} className="space-y-4">
           {(
             [
               { name: "fullName", label: "Повне ім'я", type: "text" },
@@ -290,30 +246,20 @@ function EditUserDialog({
             ] as const
           ).map(({ name, label, type }) => (
             <div key={name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {label}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
               <input
                 {...register(name)}
                 type={type}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40"
               />
-              {errors[name] && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[name]?.message}
-                </p>
-              )}
+              {errors[name] && <p className="text-red-500 text-xs mt-1">{errors[name]?.message}</p>}
             </div>
           ))}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Роль
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
             <select
               value={selectedRole ?? ""}
-              onChange={(e) =>
-                setSelectedRole(e.target.value ? Number(e.target.value) : null)
-              }
+              onChange={(e) => setSelectedRole(e.target.value ? Number(e.target.value) : null)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40 bg-white"
             >
               <option value="">Без ролі</option>
@@ -328,12 +274,7 @@ function EditUserDialog({
             <p className="text-red-500 text-sm">{mutErrMsg(updateMut.error, "Помилка при оновленні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outlined"
-              className="text-gray-700"
-            >
+            <Button type="button" onClick={onClose} variant="outlined" className="text-gray-700">
               Скасувати
             </Button>
             <Button type="submit" disabled={updateMut.isPending}>
@@ -348,13 +289,7 @@ function EditUserDialog({
 
 // ─── Add Member Dialog (by email) ─────────────────────────────────────────────
 
-function AddMemberDialog({
-  team,
-  onClose,
-}: {
-  team: TeamDto;
-  onClose: () => void;
-}) {
+function AddMemberDialog({ team, onClose }: { team: TeamDto; onClose: () => void }) {
   const qc = useQueryClient();
   const [email, setEmail] = useState("");
   const [found, setFound] = useState<AdminUserDto | null>(null);
@@ -362,8 +297,7 @@ function AddMemberDialog({
   const [searching, setSearching] = useState(false);
 
   const teamMembers = team.teamMember ?? [];
-  const isAlreadyMember = (userId: string) =>
-    teamMembers.some((m) => m.userId === userId);
+  const isAlreadyMember = (userId: string) => teamMembers.some((m) => m.userId === userId);
 
   async function handleSearch() {
     if (!email.trim()) return;
@@ -394,19 +328,14 @@ function AddMemberDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">
-          Додати учасника до команди
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Додати учасника до команди</h2>
         <p className="text-sm text-gray-500 mb-5">
-          Команда:{" "}
-          <span className="font-medium text-gray-700">{team.name}</span>
+          Команда: <span className="font-medium text-gray-700">{team.name}</span>
         </p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email користувача
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email користувача</label>
             <div className="flex gap-2">
               <input
                 value={email}
@@ -429,11 +358,7 @@ function AddMemberDialog({
                 {searching ? "..." : "Знайти"}
               </button>
             </div>
-            {notFound && (
-              <p className="text-red-500 text-xs mt-1">
-                Користувача з таким email не знайдено
-              </p>
-            )}
+            {notFound && <p className="text-red-500 text-xs mt-1">Користувача з таким email не знайдено</p>}
           </div>
 
           {found && (
@@ -441,9 +366,7 @@ function AddMemberDialog({
               <div className="flex items-center gap-3">
                 <UserAvatar name={found.fullName} />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {found.fullName}
-                  </p>
+                  <p className="text-sm font-medium text-gray-900">{found.fullName}</p>
                   <p className="text-xs text-gray-500">
                     {found.email} · {found.position}
                   </p>
@@ -457,17 +380,10 @@ function AddMemberDialog({
             </div>
           )}
 
-          {addMut.isError && (
-            <p className="text-red-500 text-sm">{mutErrMsg(addMut.error, "Помилка при додаванні")}</p>
-          )}
+          {addMut.isError && <p className="text-red-500 text-sm">{mutErrMsg(addMut.error, "Помилка при додаванні")}</p>}
 
           <div className="flex justify-end gap-3 pt-1">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outlined"
-              className="text-gray-700"
-            >
+            <Button type="button" onClick={onClose} variant="outlined" className="text-gray-700">
               Скасувати
             </Button>
             <Button
@@ -486,13 +402,7 @@ function AddMemberDialog({
 
 // ─── Create/Edit Team Dialog ──────────────────────────────────────────────────
 
-function TeamDialog({
-  team,
-  onClose,
-}: {
-  team?: TeamDto | null;
-  onClose: () => void;
-}) {
+function TeamDialog({ team, onClose }: { team?: TeamDto | null; onClose: () => void }) {
   const qc = useQueryClient();
   const {
     register,
@@ -517,44 +427,26 @@ function TeamDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">
-          {team ? "Редагувати команду" : "Створити команду"}
-        </h2>
-        <form
-          onSubmit={handleSubmit((d) => saveMut.mutate(d))}
-          className="space-y-4"
-        >
+        <h2 className="text-lg font-semibold text-gray-900 mb-5">{team ? "Редагувати команду" : "Створити команду"}</h2>
+        <form onSubmit={handleSubmit((d) => saveMut.mutate(d))} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Назва команди
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Назва команди</label>
             <input
               {...register("name")}
               placeholder="Назва команди"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/40"
             />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
           </div>
           {saveMut.isError && (
             <p className="text-red-500 text-sm">{mutErrMsg(saveMut.error, "Помилка при збереженні")}</p>
           )}
           <div className="flex justify-end gap-3 pt-1">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outlined"
-              className="text-gray-700"
-            >
+            <Button type="button" onClick={onClose} variant="outlined" className="text-gray-700">
               Скасувати
             </Button>
             <Button type="submit" disabled={saveMut.isPending}>
-              {saveMut.isPending
-                ? "Збереження..."
-                : team
-                  ? "Зберегти"
-                  : "Створити"}
+              {saveMut.isPending ? "Збереження..." : team ? "Зберегти" : "Створити"}
             </Button>
           </div>
         </form>
@@ -599,8 +491,7 @@ function UserRowDropdown({
   }, [open]);
 
   function handleToggle() {
-    if (!open && btnRef.current)
-      setRect(btnRef.current.getBoundingClientRect());
+    if (!open && btnRef.current) setRect(btnRef.current.getBoundingClientRect());
     setOpen((v) => !v);
   }
 
@@ -637,11 +528,7 @@ function UserRowDropdown({
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4 text-gray-400"
-              >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-400">
                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
               </svg>
               Редагувати
@@ -706,18 +593,10 @@ function UserRowDropdown({
 function MemberRowDropdown({
   member,
   team,
-  roles,
-  canMakeAdmin,
   canRemove,
 }: {
-  member: TeamDto["teamMember"] extends infer M
-    ? M extends Array<infer T>
-      ? T
-      : never
-    : never;
+  member: TeamDto["teamMember"] extends infer M ? (M extends Array<infer T> ? T : never) : never;
   team: TeamDto;
-  roles: RoleDto[];
-  canMakeAdmin: boolean;
   canRemove: boolean;
 }) {
   const qc = useQueryClient();
@@ -725,38 +604,10 @@ function MemberRowDropdown({
   const [rect, setRect] = useState<DOMRect | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [adminConflict, setAdminConflict] = useState(false);
-
-  const adminRoleId = roles.find((r) => r.name === "Admin")?.id ?? null;
-  const devRoleId = roles.find((r) => r.name === "Developer")?.id ?? null;
-  const memberUser = member.user;
-  const isAdmin = hasRole(memberUser, "Admin");
-  const teamAdminMember = (team.teamMember ?? []).find((m) =>
-    hasRole(m.user, "Admin"),
-  );
 
   const removeMut = useMutation({
     mutationFn: () => teamService.removeMember(team.id, member.userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["teams"] }),
-  });
-
-  const assignAdminMut = useMutation({
-    mutationFn: async () => {
-      if (isAdmin) {
-        await userService.clearRole(member.userId);
-      } else {
-        if (
-          teamAdminMember &&
-          teamAdminMember.userId !== member.userId &&
-          devRoleId
-        ) {
-          await userService.assignRole(teamAdminMember.userId, devRoleId);
-        }
-        if (adminRoleId)
-          await userService.assignRole(member.userId, adminRoleId);
-      }
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teams", "users"] }),
   });
 
   useEffect(() => {
@@ -776,59 +627,12 @@ function MemberRowDropdown({
   }, [open]);
 
   function handleToggle() {
-    if (!open && btnRef.current)
-      setRect(btnRef.current.getBoundingClientRect());
+    if (!open && btnRef.current) setRect(btnRef.current.getBoundingClientRect());
     setOpen((v) => !v);
-  }
-
-  function handleMakeAdmin() {
-    setOpen(false);
-    if (
-      !isAdmin &&
-      teamAdminMember &&
-      teamAdminMember.userId !== member.userId
-    ) {
-      setAdminConflict(true);
-      return;
-    }
-    assignAdminMut.mutate();
   }
 
   return (
     <>
-      {adminConflict && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-2">
-              Замінити адміністратора команди?
-            </h3>
-            <p className="text-sm text-gray-600 mb-5">
-              Поточний адміністратор —{" "}
-              <span className="font-medium">
-                {teamAdminMember?.user.fullName}
-              </span>
-              . Він буде переведений у роль Developer. Продовжити?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setAdminConflict(false)}
-                className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Скасувати
-              </button>
-              <button
-                onClick={() => {
-                  setAdminConflict(false);
-                  assignAdminMut.mutate();
-                }}
-                className="px-4 py-2 rounded-lg bg-[#3b82f6] text-sm text-white font-medium hover:bg-[#2563eb] transition-colors"
-              >
-                Замінити
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <div>
         <button
           ref={btnRef}
@@ -854,25 +658,6 @@ function MemberRowDropdown({
               }}
               className="w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1"
             >
-              {canMakeAdmin && (
-                <button
-                  onClick={handleMakeAdmin}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className={`w-4 h-4 ${isAdmin ? "text-amber-500" : "text-gray-400"}`}
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {isAdmin ? "Зняти Admin" : "Призначити Admin"}
-                </button>
-              )}
               {canRemove && (
                 <button
                   onClick={() => {
@@ -881,11 +666,7 @@ function MemberRowDropdown({
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4"
-                  >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                     <path
                       fillRule="evenodd"
                       d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11A6 6 0 0114.89 13.476zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
@@ -905,13 +686,7 @@ function MemberRowDropdown({
 
 // ─── Users Tab (Admin only) ───────────────────────────────────────────────────
 
-function UsersTab({
-  users,
-  roles,
-}: {
-  users: AdminUserDto[];
-  roles: RoleDto[];
-}) {
+function UsersTab({ users, roles }: { users: AdminUserDto[]; roles: RoleDto[] }) {
   const qc = useQueryClient();
   const { user: currentUser } = useAuthContext();
   const [search, setSearch] = useState("");
@@ -951,19 +726,14 @@ function UsersTab({
   const [showCreate, setShowCreate] = useState(false);
   const [editUser, setEditUser] = useState<AdminUserDto | null>(null);
 
-  const roleDropRef = useClickOutside<HTMLDivElement>(() =>
-    setRoleDropOpen(false),
-  );
-  const statusDropRef = useClickOutside<HTMLDivElement>(() =>
-    setStatusDropOpen(false),
-  );
+  const roleDropRef = useClickOutside<HTMLDivElement>(() => setRoleDropOpen(false));
+  const statusDropRef = useClickOutside<HTMLDivElement>(() => setStatusDropOpen(false));
 
   const adminRoleId = roles.find((r) => r.name === "Admin")?.id ?? null;
   const devRoleId = roles.find((r) => r.name === "Developer")?.id ?? null;
 
   const toggleActiveMut = useMutation({
-    mutationFn: (u: AdminUserDto) =>
-      userService.update(u.id, { isActive: !u.isActive }),
+    mutationFn: (u: AdminUserDto) => userService.update(u.id, { isActive: !u.isActive }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 
@@ -996,9 +766,7 @@ function UsersTab({
           u.fullName.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase());
         const matchRole = !roleFilter || u.role?.name === roleFilter;
-        const matchStatus =
-          !statusFilter ||
-          (statusFilter === "active" ? u.isActive : !u.isActive);
+        const matchStatus = !statusFilter || (statusFilter === "active" ? u.isActive : !u.isActive);
         return matchSearch && matchRole && matchStatus;
       }),
     [users, search, roleFilter, statusFilter],
@@ -1009,9 +777,7 @@ function UsersTab({
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#0f172b]">Адміністрування</h1>
-          <p className="text-sm text-[#45556c] mt-1">
-            Керування користувачами та ролями системи
-          </p>
+          <p className="text-sm text-[#45556c] mt-1">Керування користувачами та ролями системи</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -1047,17 +813,9 @@ function UsersTab({
               <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
               <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
             </svg>
-            {seedMut.isPending
-              ? "Заповнення..."
-              : seedDone
-                ? "Заповнено"
-                : "Заповнити даними"}
+            {seedMut.isPending ? "Заповнення..." : seedDone ? "Заповнено" : "Заповнити даними"}
           </button>
-          <Button
-            type="button"
-            onClick={() => setShowCreate(true)}
-            className="gap-2"
-          >
+          <Button type="button" onClick={() => setShowCreate(true)} className="gap-2">
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path
                 fillRule="evenodd"
@@ -1086,10 +844,7 @@ function UsersTab({
           },
           { label: "Developers", value: stats.devs, color: "text-[#7c3aed]" },
         ].map(({ label, value, color }) => (
-          <div
-            key={label}
-            className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4"
-          >
+          <div key={label} className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4">
             <p className="text-sm text-[#45556c]">{label}</p>
             <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
           </div>
@@ -1124,9 +879,7 @@ function UsersTab({
               onClick={() => setRoleDropOpen((v) => !v)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] text-sm text-[#45556c] hover:bg-[#f1f5f9] transition-colors min-w-40"
             >
-              <span className="flex-1 text-left">
-                {roleFilter || "Всі ролі"}
-              </span>
+              <span className="flex-1 text-left">{roleFilter || "Всі ролі"}</span>
               <ChevronDownIcon
                 className={`w-4 h-4 shrink-0 transition-transform ${roleDropOpen ? "rotate-180" : ""}`}
               />
@@ -1155,11 +908,7 @@ function UsersTab({
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] text-sm text-[#45556c] hover:bg-[#f1f5f9] transition-colors min-w-40"
             >
               <span className="flex-1 text-left">
-                {statusFilter === "active"
-                  ? "Активні"
-                  : statusFilter === "inactive"
-                    ? "Неактивні"
-                    : "Всі статуси"}
+                {statusFilter === "active" ? "Активні" : statusFilter === "inactive" ? "Неактивні" : "Всі статуси"}
               </span>
               <ChevronDownIcon
                 className={`w-4 h-4 shrink-0 transition-transform ${statusDropOpen ? "rotate-180" : ""}`}
@@ -1194,15 +943,7 @@ function UsersTab({
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#e2e8f0]">
-              {[
-                "Користувач",
-                "Email",
-                "Роль",
-                "Статус",
-                "Задач",
-                "Дата приєднання",
-                "Дії",
-              ].map((h, i) => (
+              {["Користувач", "Email", "Роль", "Статус", "Задач", "Дата приєднання", "Дії"].map((h, i) => (
                 <th
                   key={h}
                   className={`text-sm font-medium text-[#45556c] px-4 py-3 ${i === 6 ? "text-right" : "text-left"}`}
@@ -1215,10 +956,7 @@ function UsersTab({
           <tbody className="divide-y divide-[#f1f5f9]">
             {filtered.length === 0 ? (
               <tr>
-                <td
-                  colSpan={7}
-                  className="py-12 text-center text-sm text-[#45556c]"
-                >
+                <td colSpan={7} className="py-12 text-center text-sm text-[#45556c]">
                   Користувачів не знайдено
                 </td>
               </tr>
@@ -1226,34 +964,23 @@ function UsersTab({
               filtered.map((u) => {
                 const primaryRole = getUserPrimaryRole(u);
                 return (
-                  <tr
-                    key={u.id}
-                    className="hover:bg-[#f8fafc]/50 transition-colors"
-                  >
+                  <tr key={u.id} className="hover:bg-[#f8fafc]/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <UserAvatar name={u.fullName} />
                         <div>
-                          <p className="text-sm font-medium text-[#0f172b]">
-                            {u.fullName}
-                          </p>
+                          <p className="text-sm font-medium text-[#0f172b]">{u.fullName}</p>
                           <p className="text-xs text-[#45556c]">{u.position}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#45556c]">
-                      {u.email}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-[#45556c]">{u.email}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium ${roleBadgeClass(primaryRole)}`}
                       >
                         {primaryRole === "Admin" && (
-                          <svg
-                            viewBox="0 0 12 12"
-                            fill="currentColor"
-                            className="w-3 h-3 mr-1"
-                          >
+                          <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 mr-1">
                             <path d="M6 1l1.39 2.81L10.5 4.24l-2.25 2.19.53 3.09L6 8l-2.78 1.52.53-3.09L1.5 4.24l3.11-.43L6 1z" />
                           </svg>
                         )}
@@ -1266,12 +993,8 @@ function UsersTab({
                         label={u.isActive ? "Активний" : "Неактивний"}
                       />
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#45556c]">
-                      {u._count.assigned}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[#45556c]">
-                      {formatDate(u.createdAt)}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-[#45556c]">{u._count.assigned}</td>
+                    <td className="px-4 py-3 text-sm text-[#45556c]">{formatDate(u.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
                       {u.id !== currentUser?.id && (
                         <UserRowDropdown
@@ -1293,16 +1016,12 @@ function UsersTab({
       {confirmClear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-2">
-              Очистити базу даних?
-            </h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Очистити базу даних?</h3>
             <p className="text-sm text-gray-600 mb-5">
-              Буде видалено всі проекти, спринти, задачі, команди та
-              користувачів (крім вашого акаунту). Цю дію неможливо скасувати.
+              Буде видалено всі проекти, спринти, задачі, команди та користувачів (крім вашого акаунту). Цю дію
+              неможливо скасувати.
             </p>
-            {clearMut.isError && (
-              <p className="text-red-500 text-sm mb-3">Помилка при очищенні</p>
-            )}
+            {clearMut.isError && <p className="text-red-500 text-sm mb-3">Помилка при очищенні</p>}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmClear(false)}
@@ -1322,19 +1041,9 @@ function UsersTab({
         </div>
       )}
       {showCreate && (
-        <CreateUserDialog
-          roles={roles}
-          onClose={() => setShowCreate(false)}
-          onCreated={() => setShowCreate(false)}
-        />
+        <CreateUserDialog roles={roles} onClose={() => setShowCreate(false)} onCreated={() => setShowCreate(false)} />
       )}
-      {editUser && (
-        <EditUserDialog
-          user={editUser}
-          roles={roles}
-          onClose={() => setEditUser(null)}
-        />
-      )}
+      {editUser && <EditUserDialog user={editUser} roles={roles} onClose={() => setEditUser(null)} />}
     </>
   );
 }
@@ -1343,29 +1052,21 @@ function UsersTab({
 
 function TeamsTab({
   teams,
-  roles,
   canManage,
-  isAdmin: isAdminRole,
   currentUserId,
 }: {
   teams: TeamDto[];
-  roles: RoleDto[];
   canManage: boolean;
-  isAdmin: boolean;
   currentUserId: string;
 }) {
   const qc = useQueryClient();
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
-    teams[0]?.id ?? null,
-  );
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(teams[0]?.id ?? null);
   const [teamDropOpen, setTeamDropOpen] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [editTeam, setEditTeam] = useState<TeamDto | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
 
-  const teamDropRef = useClickOutside<HTMLDivElement>(() =>
-    setTeamDropOpen(false),
-  );
+  const teamDropRef = useClickOutside<HTMLDivElement>(() => setTeamDropOpen(false));
 
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) ?? null;
 
@@ -1388,16 +1089,10 @@ function TeamsTab({
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#0f172b]">Команди</h1>
-          <p className="text-sm text-[#45556c] mt-1">
-            Керування командами та їх учасниками
-          </p>
+          <p className="text-sm text-[#45556c] mt-1">Керування командами та їх учасниками</p>
         </div>
         {canManage && (
-          <Button
-            type="button"
-            onClick={() => setShowCreateTeam(true)}
-            className="gap-2"
-          >
+          <Button type="button" onClick={() => setShowCreateTeam(true)} className="gap-2">
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path
                 fillRule="evenodd"
@@ -1431,9 +1126,7 @@ function TeamsTab({
                 onClick={() => setTeamDropOpen((v) => !v)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e2e8f0] bg-white text-sm font-medium text-[#0f172b] hover:bg-[#f8fafc] transition-colors min-w-48"
               >
-                <span className="flex-1 text-left truncate">
-                  {currentTeam?.name ?? "Виберіть команду"}
-                </span>
+                <span className="flex-1 text-left truncate">{currentTeam?.name ?? "Виберіть команду"}</span>
                 <ChevronDownIcon
                   className={`w-4 h-4 shrink-0 transition-transform ${teamDropOpen ? "rotate-180" : ""}`}
                 />
@@ -1450,9 +1143,7 @@ function TeamsTab({
                       className={`w-full text-left px-4 py-2 text-sm hover:bg-[#f8fafc] transition-colors ${currentTeam?.id === t.id ? "text-[#3b82f6] font-medium" : "text-[#374151]"}`}
                     >
                       {t.name}
-                      <span className="ml-1 text-xs text-[#45556c]">
-                        ({t.teamMember?.length ?? 0})
-                      </span>
+                      <span className="ml-1 text-xs text-[#45556c]">({t.teamMember?.length ?? 0})</span>
                     </button>
                   ))}
                 </div>
@@ -1465,11 +1156,7 @@ function TeamsTab({
                   onClick={() => setEditTeam(currentTeam)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#e2e8f0] bg-white text-sm text-[#45556c] hover:bg-[#f8fafc] transition-colors"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4"
-                  >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                   </svg>
                   Редагувати
@@ -1478,11 +1165,7 @@ function TeamsTab({
                   onClick={() => deleteMut.mutate(currentTeam.id)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 bg-white text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4"
-                  >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                     <path
                       fillRule="evenodd"
                       d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -1499,21 +1182,16 @@ function TeamsTab({
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4">
               <p className="text-sm text-[#45556c]">Учасників</p>
-              <p className="text-3xl font-bold text-[#0f172b] mt-1">
-                {members.length}
-              </p>
+              <p className="text-3xl font-bold text-[#0f172b] mt-1">{members.length}</p>
             </div>
             <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4">
               <p className="text-sm text-[#45556c]">Активних</p>
-              <p className="text-3xl font-bold text-[#16a34a] mt-1">
-                {members.filter((m) => m.user.isActive).length}
-              </p>
+              <p className="text-3xl font-bold text-[#16a34a] mt-1">{members.filter((m) => m.user.isActive).length}</p>
             </div>
             <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4">
               <p className="text-sm text-[#45556c]">Адміністратор</p>
               <p className="text-sm font-semibold text-[#7c3aed] mt-2 truncate">
-                {members.find((m) => hasRole(m.user, "Admin"))?.user.fullName ??
-                  "—"}
+                {members.find((m) => hasRole(m.user, "Admin"))?.user.fullName ?? "—"}
               </p>
             </div>
           </div>
@@ -1521,19 +1199,13 @@ function TeamsTab({
           {/* members table */}
           <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-[#e2e8f0]">
-              <p className="text-sm font-medium text-[#0f172b]">
-                Учасники команди
-              </p>
+              <p className="text-sm font-medium text-[#0f172b]">Учасники команди</p>
               {canManage && (
                 <button
                   onClick={() => setShowAddMember(true)}
                   className="flex items-center gap-1.5 text-sm text-[#3b82f6] font-medium hover:text-[#2563eb] transition-colors"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4"
-                  >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                     <path
                       fillRule="evenodd"
                       d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -1547,63 +1219,43 @@ function TeamsTab({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#f1f5f9]">
-                  {["Учасник", "Email", "Посада", "Роль", "Статус", "Дії"].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        className={`text-sm font-medium text-[#45556c] px-4 py-3 ${i === 5 ? "text-right" : "text-left"}`}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {["Учасник", "Email", "Посада", "Роль", "Статус", "Дії"].map((h, i) => (
+                    <th
+                      key={h}
+                      className={`text-sm font-medium text-[#45556c] px-4 py-3 ${i === 5 ? "text-right" : "text-left"}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f1f5f9]">
                 {members.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="py-10 text-center text-sm text-[#45556c]"
-                    >
+                    <td colSpan={6} className="py-10 text-center text-sm text-[#45556c]">
                       В цій команді ще немає учасників
                     </td>
                   </tr>
                 ) : (
                   members.map((m) => {
                     const memberUser = m.user;
-                    const primaryRole = getUserPrimaryRole(
-                      memberUser as unknown as AdminUserDto,
-                    );
+                    const primaryRole = getUserPrimaryRole(memberUser as unknown as AdminUserDto);
                     return (
-                      <tr
-                        key={m.userId}
-                        className="hover:bg-[#f8fafc]/50 transition-colors"
-                      >
+                      <tr key={m.userId} className="hover:bg-[#f8fafc]/50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <UserAvatar name={m.user.fullName} />
-                            <p className="text-sm font-medium text-[#0f172b]">
-                              {m.user.fullName}
-                            </p>
+                            <p className="text-sm font-medium text-[#0f172b]">{m.user.fullName}</p>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#45556c]">
-                          {m.user.email}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[#45556c]">
-                          {m.user.position ?? "—"}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-[#45556c]">{m.user.email}</td>
+                        <td className="px-4 py-3 text-sm text-[#45556c]">{m.user.position ?? "—"}</td>
                         <td className="px-4 py-3">
                           <span
                             className={`inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium ${roleBadgeClass(primaryRole)}`}
                           >
                             {primaryRole === "Admin" && (
-                              <svg
-                                viewBox="0 0 12 12"
-                                fill="currentColor"
-                                className="w-3 h-3 mr-1"
-                              >
+                              <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 mr-1">
                                 <path d="M6 1l1.39 2.81L10.5 4.24l-2.25 2.19.53 3.09L6 8l-2.78 1.52.53-3.09L1.5 4.24l3.11-.43L6 1z" />
                               </svg>
                             )}
@@ -1617,17 +1269,13 @@ function TeamsTab({
                           />
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {canManage &&
-                            currentTeam &&
-                            m.userId !== currentUserId && (
-                              <MemberRowDropdown
-                                member={m}
-                                team={currentTeam}
-                                roles={roles}
-                                canMakeAdmin={isAdminRole}
-                                canRemove={m.userId !== currentUserId}
-                              />
-                            )}
+                          {canManage && currentTeam && m.userId !== currentUserId && (
+                            <MemberRowDropdown
+                              member={m}
+                              team={currentTeam}
+                              canRemove={m.userId !== currentUserId}
+                            />
+                          )}
                         </td>
                       </tr>
                     );
@@ -1648,12 +1296,7 @@ function TeamsTab({
           }}
         />
       )}
-      {showAddMember && currentTeam && (
-        <AddMemberDialog
-          team={currentTeam}
-          onClose={() => setShowAddMember(false)}
-        />
-      )}
+      {showAddMember && currentTeam && <AddMemberDialog team={currentTeam} onClose={() => setShowAddMember(false)} />}
     </>
   );
 }
@@ -1709,9 +1352,7 @@ export default function Admin() {
                 key={id}
                 onClick={() => setTab(id)}
                 className={`rounded-md px-4 py-1.25 text-sm font-medium transition ${
-                  tab === id
-                    ? "bg-white text-[#0f172b] shadow-sm"
-                    : "text-[#45556c] hover:text-[#0f172b]"
+                  tab === id ? "bg-white text-[#0f172b] shadow-sm" : "text-[#45556c] hover:text-[#0f172b]"
                 }`}
               >
                 {label}
@@ -1724,9 +1365,7 @@ export default function Admin() {
         {(tab === "teams" || !showBothTabs) && (
           <TeamsTab
             teams={teams}
-            roles={roles}
             canManage={canManageTeams}
-            isAdmin={isAdmin}
             currentUserId={user?.id ?? ""}
           />
         )}

@@ -8,17 +8,9 @@ import TaskCard from "~/components/task-card/TaskCard";
 import SprintCard from "~/components/sprint-card/SprintCard";
 import DropdownMenu from "~/components/dropdown-menu/DropdownMenu";
 import { useClickOutside } from "~/hooks/useClickOutside";
-import {
-  CalendarIcon,
-  ChevronDownIcon,
-  DotsIcon,
-  EditIcon,
-  PlusIcon,
-} from "~/components/svg/Svg";
+import { CalendarIcon, ChevronDownIcon, DotsIcon, EditIcon, PlusIcon } from "~/components/svg/Svg";
 import SprintFormDialog, { type SprintFormValues } from "./CreateSprintDialog";
-import CreateTaskDialog, {
-  type CreateTaskFormValues,
-} from "./CreateTaskDialog";
+import CreateTaskDialog, { type CreateTaskFormValues } from "./CreateTaskDialog";
 import { sprintService } from "~/services/sprint-service";
 import { taskService } from "~/services/task-service";
 import { projectService } from "~/services/project-service";
@@ -44,8 +36,7 @@ export default function Sprints() {
 
   const [tab, setTab] = useState<Tab>("planning");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedPlanningSprintId, setSelectedPlanningSprintId] =
-    useState<string>("");
+  const [selectedPlanningSprintId, setSelectedPlanningSprintId] = useState<string>("");
   const [projectDropOpen, setProjectDropOpen] = useState(false);
 
   // Create sprint dialog
@@ -55,8 +46,7 @@ export default function Sprints() {
   // Edit sprint dialog
   const [editSprint, setEditSprint] = useState<SprintDto | null>(null);
   const [editSprintError, setEditSprintError] = useState<string | null>(null);
-  const [deleteSprintTarget, setDeleteSprintTarget] =
-    useState<SprintDto | null>(null);
+  const [deleteSprintTarget, setDeleteSprintTarget] = useState<SprintDto | null>(null);
 
   // Create task dialog
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
@@ -64,10 +54,7 @@ export default function Sprints() {
 
   // Close project dropdown on outside click
   const closeProjectDrop = useCallback(() => setProjectDropOpen(false), []);
-  const projectDropRef = useClickOutside<HTMLDivElement>(
-    closeProjectDrop,
-    projectDropOpen,
-  );
+  const projectDropRef = useClickOutside<HTMLDivElement>(closeProjectDrop, projectDropOpen);
 
   // ── Projects list (only active) ──────────────────────────────────────
   const { data: projectsData } = useQuery({
@@ -75,11 +62,8 @@ export default function Sprints() {
     queryFn: () => projectService.list(),
     staleTime: 60_000,
   });
-  const projects = (projectsData?.projects ?? []).filter(
-    (p) => p.status === "active",
-  );
-  const currentProject =
-    projects.find((p) => p.id === selectedProjectId) ?? projects[0];
+  const projects = (projectsData?.projects ?? []).filter((p) => p.status === "active");
+  const currentProject = projects.find((p) => p.id === selectedProjectId) ?? projects[0];
   const effectiveProjectId = currentProject?.id ?? "";
 
   // ── Sprints ───────────────────────────────────────────────────────────
@@ -90,19 +74,15 @@ export default function Sprints() {
   const allSprints: SprintDto[] = (sprintsData?.sprints ?? []).filter(
     (s) => !effectiveProjectId || s.projectId === effectiveProjectId,
   );
-  const selectableSprints = allSprints.filter(
-    (s) => s.status === "planned" || s.status === "active",
-  );
-  const planningSprint =
-    selectableSprints.find((s) => s.id === selectedPlanningSprintId) ?? null;
+  const selectableSprints = allSprints.filter((s) => s.status === "planned" || s.status === "active");
+  const planningSprint = selectableSprints.find((s) => s.id === selectedPlanningSprintId) ?? null;
   const activeSprint = allSprints.find((s) => s.status === "active") ?? null;
   const hasActiveSprint = activeSprint !== null;
 
   // ── Tasks ─────────────────────────────────────────────────────────────
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ["tasks", effectiveProjectId],
-    queryFn: () =>
-      taskService.list({ projectId: effectiveProjectId || undefined }),
+    queryFn: () => taskService.list({ projectId: effectiveProjectId || undefined }),
     enabled: Boolean(effectiveProjectId),
   });
   const { data: teamsData } = useQuery({
@@ -111,18 +91,14 @@ export default function Sprints() {
     staleTime: 60_000,
   });
   const allTasks = tasksData?.tasks ?? [];
-  const projectTeam = (teamsData?.teams ?? []).find(
-    (t) => t.id === currentProject?.teamId,
-  );
+  const projectTeam = (teamsData?.teams ?? []).find((t) => t.id === currentProject?.teamId);
   const assignees =
     projectTeam?.teamMember
       ?.map((m) => m.user)
       .filter((u) => u.isActive && u.role?.name === "Developer")
       .map((u) => ({ id: u.id, fullName: u.fullName })) ?? [];
   const backlogTasks = allTasks.filter((t) => t.sprintId === null);
-  const sprintTasks = planningSprint
-    ? allTasks.filter((t) => t.sprintId === planningSprint.id)
-    : [];
+  const sprintTasks = planningSprint ? allTasks.filter((t) => t.sprintId === planningSprint.id) : [];
   const totalSP = sprintTasks.reduce((s, t) => s + (t.storyPoint ?? 0), 0);
 
   useEffect(() => {
@@ -131,14 +107,10 @@ export default function Sprints() {
       return;
     }
 
-    const hasSelected = selectableSprints.some(
-      (s) => s.id === selectedPlanningSprintId,
-    );
+    const hasSelected = selectableSprints.some((s) => s.id === selectedPlanningSprintId);
     if (hasSelected) return;
 
-    const preferredSprint =
-      selectableSprints.find((s) => s.status === "active") ??
-      selectableSprints[0];
+    const preferredSprint = selectableSprints.find((s) => s.status === "active") ?? selectableSprints[0];
     setSelectedPlanningSprintId(preferredSprint.id);
   }, [selectableSprints, selectedPlanningSprintId]);
 
@@ -179,16 +151,13 @@ export default function Sprints() {
 
   // Only allow starting if no active sprint exists for this project
   const { mutate: startSprint } = useMutation({
-    mutationFn: (sprint: SprintDto) =>
-      sprintService.update(sprint.id, { status: "active" }),
+    mutationFn: (sprint: SprintDto) => sprintService.update(sprint.id, { status: "active" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sprints"] }),
   });
 
   const { mutate: closeSprint } = useMutation({
     mutationFn: (sprint: SprintDto) => sprintService.close(sprint.id),
     onSuccess: () => {
-      // Invalidate both: sprint list (status changes) and tasks
-      // (unfinished tasks are nullified back to backlog by sp_close_sprint)
       queryClient.invalidateQueries({ queryKey: ["sprints"] });
       queryClient.invalidateQueries({
         queryKey: ["tasks", effectiveProjectId],
@@ -205,13 +174,8 @@ export default function Sprints() {
   });
 
   const { mutate: moveTask } = useMutation({
-    mutationFn: ({
-      taskId,
-      sprintId,
-    }: {
-      taskId: string;
-      sprintId: string | null;
-    }) => taskService.update(taskId, { sprintId }),
+    mutationFn: ({ taskId, sprintId }: { taskId: string; sprintId: string | null }) =>
+      taskService.update(taskId, { sprintId }),
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: ["tasks", effectiveProjectId],
@@ -259,9 +223,7 @@ export default function Sprints() {
       ]
     : [];
 
-  const projectKey = currentProject
-    ? getProjectKey(currentProject.name)
-    : "TASK";
+  const projectKey = currentProject ? getProjectKey(currentProject.name) : "TASK";
 
   const isLoading = sprintsLoading || tasksLoading;
 
@@ -271,12 +233,8 @@ export default function Sprints() {
         {/* ─── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">
-              Планування спринтів
-            </h1>
-            <p className="mt-1 text-base leading-6 text-[#45556c]">
-              Керуйте беклогом та плануйте спринти
-            </p>
+            <h1 className="text-[30px] font-bold leading-9 text-[#0f172b]">Планування спринтів</h1>
+            <p className="mt-1 text-base leading-6 text-[#45556c]">Керуйте беклогом та плануйте спринти</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -287,11 +245,7 @@ export default function Sprints() {
                 onClick={() => setProjectDropOpen((v) => !v)}
                 className="flex h-9 items-center gap-2 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b]"
               >
-                <span>
-                  {currentProject
-                    ? `${currentProject.name} (${projectKey})`
-                    : "Оберіть проєкт"}
-                </span>
+                <span>{currentProject ? `${currentProject.name} (${projectKey})` : "Оберіть проєкт"}</span>
                 <ChevronDownIcon className="text-[#717182]" />
               </button>
               {projectDropOpen ? (
@@ -306,18 +260,14 @@ export default function Sprints() {
                           setProjectDropOpen(false);
                         }}
                         className={`w-full px-3 py-2 text-left text-sm hover:bg-[#f8fafc] ${
-                          p.id === effectiveProjectId
-                            ? "font-medium text-[#1447e6]"
-                            : "text-[#0a0a0a]"
+                          p.id === effectiveProjectId ? "font-medium text-[#1447e6]" : "text-[#0a0a0a]"
                         }`}
                       >
                         {p.name}
                       </button>
                     ))
                   ) : (
-                    <p className="px-3 py-2 text-sm text-[#717182]">
-                      Немає активних проєктів
-                    </p>
+                    <p className="px-3 py-2 text-sm text-[#717182]">Немає активних проєктів</p>
                   )}
                 </div>
               ) : null}
@@ -361,9 +311,7 @@ export default function Sprints() {
               type="button"
               onClick={() => setTab(t)}
               className={`rounded-md px-4 py-1.25 text-sm font-medium transition ${
-                tab === t
-                  ? "bg-white text-[#0f172b] shadow-sm"
-                  : "text-[#45556c] hover:text-[#0f172b]"
+                tab === t ? "bg-white text-[#0f172b] shadow-sm" : "text-[#45556c] hover:text-[#0f172b]"
               }`}
             >
               {t === "planning" ? "Планування" : "Всі спринти"}
@@ -374,17 +322,12 @@ export default function Sprints() {
         {isLoading ? (
           <div className="grid grid-cols-2 gap-6">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-64 animate-pulse rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc]"
-              />
+              <div key={i} className="h-64 animate-pulse rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc]" />
             ))}
           </div>
         ) : !effectiveProjectId ? (
           <div className="flex items-center justify-center rounded-[10px] border border-dashed border-[#e2e8f0] py-16">
-            <p className="text-sm text-[#717182]">
-              Оберіть проєкт для перегляду спринтів
-            </p>
+            <p className="text-sm text-[#717182]">Оберіть проєкт для перегляду спринтів</p>
           </div>
         ) : tab === "planning" ? (
           // ─── Planning tab ──────────────────────────────────────────────
@@ -392,9 +335,7 @@ export default function Sprints() {
             {/* Backlog */}
             <div className="rounded-[10px] border border-[#e2e8f0] bg-white">
               <div className="border-b border-[#e2e8f0] px-4 py-4">
-                <h3 className="text-[18px] font-semibold leading-7 text-[#0f172b]">
-                  Беклог ({backlogTasks.length})
-                </h3>
+                <h3 className="text-[18px] font-semibold leading-7 text-[#0f172b]">Беклог ({backlogTasks.length})</h3>
               </div>
               <div className="flex flex-col gap-2 p-4">
                 {backlogTasks.length > 0 ? (
@@ -412,17 +353,11 @@ export default function Sprints() {
                               })
                           : undefined
                       }
-                      actionTitle={
-                        planningSprint
-                          ? `Додати до ${planningSprint.name}`
-                          : "Оберіть спринт для додавання"
-                      }
+                      actionTitle={planningSprint ? `Додати до ${planningSprint.name}` : "Оберіть спринт для додавання"}
                     />
                   ))
                 ) : (
-                  <p className="py-8 text-center text-sm text-[#717182]">
-                    Беклог порожній
-                  </p>
+                  <p className="py-8 text-center text-sm text-[#717182]">Беклог порожній</p>
                 )}
               </div>
             </div>
@@ -435,39 +370,23 @@ export default function Sprints() {
                     <div className="flex flex-col gap-1">
                       <select
                         value={selectedPlanningSprintId}
-                        onChange={(e) =>
-                          setSelectedPlanningSprintId(e.target.value)
-                        }
+                        onChange={(e) => setSelectedPlanningSprintId(e.target.value)}
                         className="mb-2 h-9 min-w-64 rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm text-[#0f172b] outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/30"
                       >
                         {selectableSprints.map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name} (
-                            {s.status === "active" ? "active" : "planned"})
+                            {s.name} ({s.status === "active" ? "active" : "planned"})
                           </option>
                         ))}
                       </select>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-[18px] font-semibold leading-7 text-[#0f172b]">
-                          {planningSprint.name}
-                        </h3>
-                        <Badge
-                          variant={
-                            planningSprint.status === "active"
-                              ? "active"
-                              : "planning"
-                          }
-                        />
+                        <h3 className="text-[18px] font-semibold leading-7 text-[#0f172b]">{planningSprint.name}</h3>
+                        <Badge variant={planningSprint.status === "active" ? "active" : "planning"} />
                       </div>
-                      {planningSprint.goal ? (
-                        <p className="text-sm text-[#45556c]">
-                          {planningSprint.goal}
-                        </p>
-                      ) : null}
+                      {planningSprint.goal ? <p className="text-sm text-[#45556c]">{planningSprint.goal}</p> : null}
                       <p className="flex items-center gap-1.5 text-sm text-[#45556c]">
                         <CalendarIcon className="text-[#a0aec0]" />
-                        {fmt(planningSprint.startDate)} –{" "}
-                        {fmt(planningSprint.endDate)}
+                        {fmt(planningSprint.startDate)} – {fmt(planningSprint.endDate)}
                       </p>
                     </div>
                     {!isDeveloper && planningSprint.status === "active" ? (
@@ -494,35 +413,23 @@ export default function Sprints() {
                         key={t.id}
                         task={t}
                         projectKey={projectKey}
-                        onClick={(task) =>
-                          moveTask({ taskId: task.id, sprintId: null })
-                        }
+                        onClick={(task) => moveTask({ taskId: task.id, sprintId: null })}
                         actionTitle="Повернути до беклогу"
                       />
                     ))
                   ) : (
-                    <p className="py-8 text-center text-sm text-[#717182]">
-                      Немає задач у спринті
-                    </p>
+                    <p className="py-8 text-center text-sm text-[#717182]">Немає задач у спринті</p>
                   )}
                 </div>
                 <div className="flex items-center justify-between border-t border-[#e2e8f0] px-4 py-3">
-                  <span className="text-sm text-[#45556c]">
-                    Загальна складність:
-                  </span>
-                  <span className="text-sm font-semibold text-[#0f172b]">
-                    {totalSP} SP
-                  </span>
+                  <span className="text-sm text-[#45556c]">Загальна складність:</span>
+                  <span className="text-sm font-semibold text-[#0f172b]">{totalSP} SP</span>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-[#e2e8f0] py-16">
-                <p className="text-sm font-medium text-[#45556c]">
-                  Немає доступного спринту
-                </p>
-                <p className="mt-1 text-xs text-[#717182]">
-                  Створіть або розпочніть спринт у вкладці «Всі спринти»
-                </p>
+                <p className="text-sm font-medium text-[#45556c]">Немає доступного спринту</p>
+                <p className="mt-1 text-xs text-[#717182]">Створіть або розпочніть спринт у вкладці «Всі спринти»</p>
               </div>
             )}
           </div>
@@ -547,12 +454,8 @@ export default function Sprints() {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-[#e2e8f0] py-16">
-                <p className="text-sm font-medium text-[#45556c]">
-                  Спринтів немає
-                </p>
-                <p className="mt-1 text-xs text-[#717182]">
-                  Створіть перший спринт для цього проєкту
-                </p>
+                <p className="text-sm font-medium text-[#45556c]">Спринтів немає</p>
+                <p className="mt-1 text-xs text-[#717182]">Створіть перший спринт для цього проєкту</p>
               </div>
             )}
           </div>
@@ -605,11 +508,7 @@ export default function Sprints() {
         description="Цю дію не можна скасувати."
       >
         <p className="text-sm text-[#45556c]">
-          Спринт{" "}
-          <span className="font-medium text-[#0f172b]">
-            {deleteSprintTarget?.name}
-          </span>{" "}
-          буде видалено назавжди.
+          Спринт <span className="font-medium text-[#0f172b]">{deleteSprintTarget?.name}</span> буде видалено назавжди.
         </p>
       </ConfirmDialog>
     </DashboardLayout>

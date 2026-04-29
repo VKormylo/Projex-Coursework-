@@ -1,38 +1,34 @@
-import { URLs } from '~/constants/request'
-import { baseService } from './base-service'
-import type { UserLogin, UserSignup } from '~/schemas/auth'
-import type {
-  AccessTokenResponse,
-  LoginResponse,
-  UserResponse,
-} from '~/types/auth.types'
+import { URLs } from "~/constants/request";
+import { baseService } from "./base-service";
+import type { UserLogin, UserSignup } from "~/schemas/auth";
+import type { AccessTokenResponse, LoginResponse, UserResponse } from "~/types/auth.types";
 
 export const authService = {
-  signup: (user: Omit<UserSignup, 'confirmPassword'> & { confirmPassword: string }) => {
+  signup: (user: UserSignup) => {
     return baseService.request<AccessTokenResponse>({
       data: user,
-      method: 'POST',
+      method: "POST",
       url: URLs.auth.signup,
-    })
+    });
   },
-  login: (user: Pick<UserLogin, 'email' | 'password'>) => {
+  login: (user: Pick<UserLogin, "email" | "password">) => {
     return baseService.request<LoginResponse>({
       data: user,
-      method: 'POST',
+      method: "POST",
       url: URLs.auth.login,
-    })
+    });
   },
   me: () => {
     return baseService.request<UserResponse>({
-      method: 'GET',
+      method: "GET",
       url: URLs.auth.me,
-    })
+    });
   },
   updateMe: (data: { fullName?: string; email?: string; position?: string }) => {
     return baseService.request<UserResponse>({
-      method: 'PATCH',
+      method: "PATCH",
       url: URLs.auth.updateMe,
       data,
-    })
+    });
   },
-}
+};

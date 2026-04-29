@@ -1,20 +1,5 @@
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  Svg,
-  Line,
-  Rect,
-  StyleSheet,
-  Font,
-} from "@react-pdf/renderer";
-import type {
-  ReportData,
-  MemberStat,
-  BurndownBlock,
-  VelocityBlock,
-} from "~/services/analytics-service";
+import { Document, Page, View, Text, Svg, Line, Rect, StyleSheet, Font } from "@react-pdf/renderer";
+import type { ReportData, MemberStat, BurndownBlock, VelocityBlock } from "~/services/analytics-service";
 
 // ── Fonts ──────────────────────────────────────────────────────────────────────
 Font.register({
@@ -28,18 +13,18 @@ Font.registerHyphenationCallback((w) => [w]);
 
 // ── Palette ────────────────────────────────────────────────────────────────────
 const C = {
-  blue:       "#3b82f6",
-  blueDark:   "#1d4ed8",
-  green:      "#10b981",
-  red:        "#ef4444",
-  orange:     "#f59e0b",
-  gray900:    "#0f172b",
-  gray700:    "#374151",
-  gray500:    "#64748b",
-  gray300:    "#cbd5e1",
-  gray100:    "#f1f5f9",
-  white:      "#ffffff",
-  pageBg:     "#f8fafc",
+  blue: "#3b82f6",
+  blueDark: "#1d4ed8",
+  green: "#10b981",
+  red: "#ef4444",
+  orange: "#f59e0b",
+  gray900: "#0f172b",
+  gray700: "#374151",
+  gray500: "#64748b",
+  gray300: "#cbd5e1",
+  gray100: "#f1f5f9",
+  white: "#ffffff",
+  pageBg: "#f8fafc",
 };
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
@@ -79,7 +64,8 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 11,
-    fontFamily: "Roboto", fontWeight: 700,
+    fontFamily: "Roboto",
+    fontWeight: 700,
     color: C.gray900,
     marginBottom: 10,
     paddingBottom: 6,
@@ -150,7 +136,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
     fontSize: 7,
-    fontFamily: "Roboto", fontWeight: 700,
+    fontFamily: "Roboto",
+    fontWeight: 700,
   },
   // Misc
   row: { flexDirection: "row", gap: 10 },
@@ -195,8 +182,12 @@ function clamp(v: number, min: number, max: number) {
 // ── SVG Bar Chart (velocity history) ──────────────────────────────────────────
 
 function VelocityBarChart({ velocity }: { velocity: VelocityBlock }) {
-  const W = 460, H = 80;
-  const PAD_L = 24, PAD_B = 20, PAD_T = 4, PAD_R = 8;
+  const W = 460,
+    H = 80;
+  const PAD_L = 24,
+    PAD_B = 20,
+    PAD_T = 4,
+    PAD_R = 8;
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
 
@@ -211,8 +202,15 @@ function VelocityBarChart({ velocity }: { velocity: VelocityBlock }) {
       {[0, 0.5, 1].map((f, i) => {
         const y = PAD_T + chartH * (1 - f);
         return (
-          <Line key={i} x1={PAD_L} y1={y} x2={W - PAD_R} y2={y}
-            strokeWidth={0.5} stroke={i === 2 ? C.gray300 : C.gray100} />
+          <Line
+            key={i}
+            x1={PAD_L}
+            y1={y}
+            x2={W - PAD_R}
+            y2={y}
+            strokeWidth={0.5}
+            stroke={i === 2 ? C.gray300 : C.gray100}
+          />
         );
       })}
       {/* Bars */}
@@ -265,8 +263,12 @@ function VelocityLabels({ velocity }: { velocity: VelocityBlock }) {
 // ── SVG Burndown Chart ─────────────────────────────────────────────────────────
 
 function BurndownChart({ burndown }: { burndown: BurndownBlock }) {
-  const W = 460, H = 90;
-  const PAD_L = 28, PAD_B = 18, PAD_T = 4, PAD_R = 8;
+  const W = 460,
+    H = 90;
+  const PAD_L = 28,
+    PAD_B = 18,
+    PAD_T = 4,
+    PAD_R = 8;
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
 
@@ -287,19 +289,20 @@ function BurndownChart({ burndown }: { burndown: BurndownBlock }) {
       {/* Grid */}
       {[0, 0.5, 1].map((f, i) => {
         const y = PAD_T + chartH * (1 - f);
-        return (
-          <Line key={i} x1={PAD_L} y1={y} x2={W - PAD_R} y2={y}
-            strokeWidth={0.5} stroke={C.gray100} />
-        );
+        return <Line key={i} x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} strokeWidth={0.5} stroke={C.gray100} />;
       })}
       {/* Ideal line */}
       <Svg>
         {pts.slice(0, -1).map((_, i) => (
           <Line
             key={i}
-            x1={px(i)} y1={py(pts[i].ideal)}
-            x2={px(i + 1)} y2={py(pts[i + 1].ideal)}
-            strokeWidth={1} stroke={C.gray300} strokeDasharray="3,2"
+            x1={px(i)}
+            y1={py(pts[i].ideal)}
+            x2={px(i + 1)}
+            y2={py(pts[i + 1].ideal)}
+            strokeWidth={1}
+            stroke={C.gray300}
+            strokeDasharray="3,2"
           />
         ))}
       </Svg>
@@ -308,9 +311,12 @@ function BurndownChart({ burndown }: { burndown: BurndownBlock }) {
         {pts.slice(0, -1).map((_, i) => (
           <Line
             key={i}
-            x1={px(i)} y1={py(pts[i].remaining)}
-            x2={px(i + 1)} y2={py(pts[i + 1].remaining)}
-            strokeWidth={1.5} stroke={C.blue}
+            x1={px(i)}
+            y1={py(pts[i].remaining)}
+            x2={px(i + 1)}
+            y2={py(pts[i + 1].remaining)}
+            strokeWidth={1.5}
+            stroke={C.blue}
           />
         ))}
       </Svg>
@@ -322,30 +328,42 @@ function BurndownChart({ burndown }: { burndown: BurndownBlock }) {
 
 function statusColor(s: string) {
   const m: Record<string, string> = {
-    todo: C.gray500, in_progress: C.blue, in_review: C.orange,
-    done: C.green, blocked: C.red,
+    todo: C.gray500,
+    in_progress: C.blue,
+    in_review: C.orange,
+    done: C.green,
+    blocked: C.red,
   };
   return m[s] ?? C.gray500;
 }
 
 function priorityColor(p: string) {
   const m: Record<string, string> = {
-    low: C.gray500, medium: C.blue, high: C.orange, critical: C.red,
+    low: C.gray500,
+    medium: C.blue,
+    high: C.orange,
+    critical: C.red,
   };
   return m[p] ?? C.gray500;
 }
 
 function statusLabel(s: string) {
   const m: Record<string, string> = {
-    todo: "До виконання", in_progress: "В роботі", in_review: "На перевірці",
-    done: "Виконано", blocked: "Заблоковано",
+    todo: "До виконання",
+    in_progress: "В роботі",
+    in_review: "На перевірці",
+    done: "Виконано",
+    blocked: "Заблоковано",
   };
   return m[s] ?? s;
 }
 
 function priorityLabel(p: string) {
   const m: Record<string, string> = {
-    low: "Низький", medium: "Середній", high: "Високий", critical: "Критичний",
+    low: "Низький",
+    medium: "Середній",
+    high: "Високий",
+    critical: "Критичний",
   };
   return m[p] ?? p;
 }
@@ -375,7 +393,12 @@ function Section1({ data }: { data: ReportData }) {
           <Text style={s.kpiLabel}>Заплановано</Text>
         </View>
         <View style={s.kpiBox}>
-          <Text style={[s.kpiValue, completionPct >= 80 ? s.kpiValueGreen : completionPct >= 50 ? s.kpiValueBlue : s.kpiValueRed]}>
+          <Text
+            style={[
+              s.kpiValue,
+              completionPct >= 80 ? s.kpiValueGreen : completionPct >= 50 ? s.kpiValueBlue : s.kpiValueRed,
+            ]}
+          >
             {completionPct}%
           </Text>
           <Text style={s.kpiLabel}>Story points виконано</Text>
@@ -387,7 +410,9 @@ function Section1({ data }: { data: ReportData }) {
           <Text style={s.kpiLabel}>Задачі виконано</Text>
         </View>
         <View style={s.kpiBox}>
-          <Text style={[s.kpiValue]}>{velocity.doneTasks}/{velocity.totalTasks}</Text>
+          <Text style={[s.kpiValue]}>
+            {velocity.doneTasks}/{velocity.totalTasks}
+          </Text>
           <Text style={s.kpiLabel}>Виконано / всього</Text>
         </View>
       </View>
@@ -463,14 +488,15 @@ function Section2({ members }: { members: MemberStat[] }) {
         <View style={s.tableHead}>
           {["Учасник", "Задачі", "Виконано", "Висок/Крит", "Story Pts", "Сер. тривалість", "% виконання"].map(
             (h, i) => (
-              <Text key={i} style={[s.th, { width: colWidths[i] }]}>{h}</Text>
+              <Text key={i} style={[s.th, { width: colWidths[i] }]}>
+                {h}
+              </Text>
             ),
           )}
         </View>
         {/* Rows */}
         {members.map((m, i) => {
-          const donePct =
-            m.totalTasks === 0 ? 0 : Math.round((m.doneTasks / m.totalTasks) * 100);
+          const donePct = m.totalTasks === 0 ? 0 : Math.round((m.doneTasks / m.totalTasks) * 100);
           const isLast = i === members.length - 1;
           return (
             <View key={m.userId} style={isLast ? s.tableRowLast : s.tableRow}>
@@ -489,10 +515,15 @@ function Section2({ members }: { members: MemberStat[] }) {
                   {donePct}%
                 </Text>
                 <View style={[s.progressTrack, { marginTop: 3 }]}>
-                  <View style={[s.progressFill, {
-                    width: `${donePct}%`,
-                    backgroundColor: donePct >= 80 ? C.green : C.blue,
-                  }]} />
+                  <View
+                    style={[
+                      s.progressFill,
+                      {
+                        width: `${donePct}%`,
+                        backgroundColor: donePct >= 80 ? C.green : C.blue,
+                      },
+                    ]}
+                  />
                 </View>
               </View>
             </View>
@@ -509,9 +540,10 @@ function Section3({ quality }: { quality: ReportData["quality"] }) {
   const items = [
     {
       label: "Заблоковані задачі",
-      sub: quality.blockedAvgDays !== null
-        ? `Середній час у блокуванні: ${quality.blockedAvgDays} дн.`
-        : "Дані про тривалість блокування відсутні",
+      sub:
+        quality.blockedAvgDays !== null
+          ? `Середній час у блокуванні: ${quality.blockedAvgDays} дн.`
+          : "Дані про тривалість блокування відсутні",
       value: quality.blockedTasks,
       color: quality.blockedTasks > 0 ? C.red : C.green,
     },
@@ -542,21 +574,22 @@ function Section3({ quality }: { quality: ReportData["quality"] }) {
       </Text>
 
       {items.map((item, i) => (
-        <View key={i} style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingVertical: 7,
-          borderBottomWidth: i < items.length - 1 ? 1 : 0,
-          borderBottomColor: C.gray100,
-        }}>
+        <View
+          key={i}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 7,
+            borderBottomWidth: i < items.length - 1 ? 1 : 0,
+            borderBottomColor: C.gray100,
+          }}
+        >
           <View>
             <Text style={[s.td, { fontFamily: "Roboto", fontWeight: 700 }]}>{item.label}</Text>
             <Text style={[s.label, { marginTop: 2 }]}>{item.sub}</Text>
           </View>
-          <Text style={{ fontSize: 16, fontFamily: "Roboto", fontWeight: 700, color: item.color }}>
-            {item.value}
-          </Text>
+          <Text style={{ fontSize: 16, fontFamily: "Roboto", fontWeight: 700, color: item.color }}>{item.value}</Text>
         </View>
       ))}
     </View>
@@ -603,10 +636,15 @@ function Section4({ project }: { project: ReportData["project"] }) {
       {/* Progress bar */}
       <View style={{ marginVertical: 8 }}>
         <View style={s.progressTrack}>
-          <View style={[s.progressFill, {
-            width: `${clamp(project.completionPct, 0, 100)}%`,
-            backgroundColor: project.completionPct >= 70 ? C.green : C.blue,
-          }]} />
+          <View
+            style={[
+              s.progressFill,
+              {
+                width: `${clamp(project.completionPct, 0, 100)}%`,
+                backgroundColor: project.completionPct >= 70 ? C.green : C.blue,
+              },
+            ]}
+          />
         </View>
       </View>
 
@@ -616,13 +654,16 @@ function Section4({ project }: { project: ReportData["project"] }) {
         <View style={{ flex: 1 }}>
           <Text style={[s.label, { marginBottom: 5, fontFamily: "Roboto", fontWeight: 700 }]}>За статусом</Text>
           {sortedStatus.map((r, i) => (
-            <View key={i} style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              paddingVertical: 4,
-              borderBottomWidth: 1,
-              borderBottomColor: C.gray100,
-            }}>
+            <View
+              key={i}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingVertical: 4,
+                borderBottomWidth: 1,
+                borderBottomColor: C.gray100,
+              }}
+            >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: statusColor(r.status) }} />
                 <Text style={s.td}>{statusLabel(r.status)}</Text>
@@ -638,13 +679,16 @@ function Section4({ project }: { project: ReportData["project"] }) {
         <View style={{ flex: 1 }}>
           <Text style={[s.label, { marginBottom: 5, fontFamily: "Roboto", fontWeight: 700 }]}>За пріоритетом</Text>
           {sortedPriority.map((r, i) => (
-            <View key={i} style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              paddingVertical: 4,
-              borderBottomWidth: 1,
-              borderBottomColor: C.gray100,
-            }}>
+            <View
+              key={i}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingVertical: 4,
+                borderBottomWidth: 1,
+                borderBottomColor: C.gray100,
+              }}
+            >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: priorityColor(r.priority) }} />
                 <Text style={s.td}>{priorityLabel(r.priority)}</Text>
@@ -705,9 +749,7 @@ function Section5({ data }: { data: ReportData }) {
           )}
         </View>
       ) : (
-        <Text style={[s.td, { color: C.gray500 }]}>
-          Для цього спринту реліз ще не створено
-        </Text>
+        <Text style={[s.td, { color: C.gray500 }]}>Для цього спринту реліз ще не створено</Text>
       )}
     </View>
   );
@@ -718,33 +760,27 @@ function Section5({ data }: { data: ReportData }) {
 export function AnalyticsReportPDF({ data }: { data: ReportData }) {
   const { sprint } = data;
   const statusMap: Record<string, string> = {
-    active: "Активний", closed: "Закритий",
-    planned: "Запланований", cancelled: "Скасований",
+    active: "Активний",
+    closed: "Закритий",
+    planned: "Запланований",
+    cancelled: "Скасований",
   };
 
   return (
-    <Document
-      title={`Звіт — ${sprint.name}`}
-      author="Projex"
-      subject="Аналітичний звіт спринту"
-    >
+    <Document title={`Звіт — ${sprint.name}`} author="Projex" subject="Аналітичний звіт спринту">
       <Page size="A4" style={s.page}>
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <View style={s.header}>
           <View style={s.headerLeft}>
             <Text style={s.headerTitle}>Projex</Text>
-            <Text style={s.headerSub}>
-              Аналітичний звіт спринту: {sprint.name}
-            </Text>
+            <Text style={s.headerSub}>Аналітичний звіт спринту: {sprint.name}</Text>
             <Text style={s.headerMeta}>
-              Проект: {sprint.projectName}  •  Статус: {statusMap[sprint.status] ?? sprint.status}
+              Проект: {sprint.projectName} • Статус: {statusMap[sprint.status] ?? sprint.status}
             </Text>
             <Text style={s.headerMeta}>
               {fmtDate(sprint.startDate)} — {fmtDate(sprint.endDate)}
             </Text>
-            {sprint.goal ? (
-              <Text style={[s.headerMeta, { marginTop: 3 }]}>Мета: {sprint.goal}</Text>
-            ) : null}
+            {sprint.goal ? <Text style={[s.headerMeta, { marginTop: 3 }]}>Мета: {sprint.goal}</Text> : null}
           </View>
           <View style={s.headerRight}>
             <Text style={s.headerMeta}>Сформовано: {fmtNow()}</Text>
@@ -765,9 +801,7 @@ export function AnalyticsReportPDF({ data }: { data: ReportData }) {
           </Text>
           <Text
             style={s.footerText}
-            render={({ pageNumber, totalPages }) =>
-              `Сторінка ${pageNumber} / ${totalPages}`
-            }
+            render={({ pageNumber, totalPages }) => `Сторінка ${pageNumber} / ${totalPages}`}
           />
         </View>
       </Page>

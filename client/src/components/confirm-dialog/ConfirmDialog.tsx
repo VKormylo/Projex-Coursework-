@@ -34,32 +34,16 @@ export default function ConfirmDialog({
       description={description}
       footer={
         <>
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={onCancel}
-            disabled={isPending}
-          >
+          <Button type="button" variant="outlined" onClick={onCancel} disabled={isPending}>
             {cancelText}
           </Button>
-          <Button
-            type="button"
-            onClick={onConfirm}
-            disabled={isPending}
-            className="bg-[#ef4444] hover:bg-[#dc2626]"
-          >
+          <Button type="button" onClick={onConfirm} disabled={isPending} className="bg-[#ef4444] hover:bg-[#dc2626]">
             {isPending ? "Видалення…" : confirmText}
           </Button>
         </>
       }
     >
-      {children ? (
-        children
-      ) : (
-        <p className="text-sm text-[#45556c]">
-          Після видалення об&apos;єкт неможливо буде відновити.
-        </p>
-      )}
+      {children ? children : <p className="text-sm text-[#45556c]">Після видалення об'єкт неможливо буде відновити.</p>}
     </Dialog>
   );
 }

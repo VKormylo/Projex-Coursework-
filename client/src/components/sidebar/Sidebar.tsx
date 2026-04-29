@@ -10,11 +10,7 @@ import MyTasksIcon from "~/assets/icons/my-tasks.svg?react";
 import ProjectsIcon from "~/assets/icons/projects.svg?react";
 import ReleasesIcon from "~/assets/icons/releases.svg?react";
 import SprintsIcon from "~/assets/icons/sprints.svg?react";
-import {
-  LogoIcon,
-  UserIcon,
-  ChevronRightIcon,
-} from "~/components/svg/Svg";
+import { LogoIcon, UserIcon, ChevronRightIcon } from "~/components/svg/Svg";
 import SidebarLink from "./SidebarLink";
 
 const NAV = [
@@ -41,9 +37,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const isDeveloper = user?.role?.name === "Developer";
-  const navItems = isDeveloper
-    ? NAV.filter((item) => item.to !== "/analytics")
-    : NAV;
+  const navItems = isDeveloper ? NAV.filter((item) => item.to !== "/analytics") : NAV;
 
   const close = useCallback(() => setOpen(false), []);
   const containerRef = useClickOutside<HTMLDivElement>(close, open);
@@ -53,9 +47,7 @@ export default function Sidebar() {
       <div className="flex h-16 items-center border-b border-[#e2e8f0] px-6">
         <div className="flex items-center gap-2">
           <LogoIcon width={24} height={24} />
-          <span className="text-base font-semibold leading-6 text-[#0f172b]">
-            Projex
-          </span>
+          <span className="text-base font-semibold leading-6 text-[#0f172b]">Projex</span>
         </div>
       </div>
 
@@ -68,11 +60,7 @@ export default function Sidebar() {
       </nav>
 
       {user ? (
-        <div
-          className="relative border-t border-[#e2e8f0] px-4 py-4.25"
-          ref={containerRef}
-        >
-          {/* Dropdown menu – rendered above the profile section */}
+        <div className="relative border-t border-[#e2e8f0] px-4 py-4.25" ref={containerRef}>
           {open && (
             <div className="absolute bottom-full left-4 right-4 mb-2 overflow-hidden rounded-lg border border-[#e2e8f0] bg-white shadow-lg">
               <button
@@ -111,12 +99,8 @@ export default function Sidebar() {
               {initials(user.fullName)}
             </div>
             <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-sm font-medium leading-5 text-[#0f172b]">
-                {user.fullName}
-              </p>
-              <p className="truncate text-xs font-medium leading-4 text-[#62748e]">
-                {user.role?.name ?? ""}
-              </p>
+              <p className="truncate text-sm font-medium leading-5 text-[#0f172b]">{user.fullName}</p>
+              <p className="truncate text-xs font-medium leading-4 text-[#62748e]">{user.role?.name ?? ""}</p>
             </div>
             <ChevronRightIcon
               className={`h-4 w-4 shrink-0 text-[#62748e] transition-transform ${open ? "-rotate-90" : "rotate-90"}`}

@@ -9,11 +9,7 @@ import { taskService } from "~/services/task-service";
 import { useAuthContext } from "~/context/authContext";
 import { useClickOutside } from "~/hooks/useClickOutside";
 import { getProjectKey, getTaskCode } from "~/utils/project-key";
-import type {
-  TaskDto,
-  ApiTaskStatus,
-  ApiTaskPriority,
-} from "~/types/sprint.types";
+import type { TaskDto, ApiTaskStatus, ApiTaskPriority } from "~/types/sprint.types";
 
 type TabId = "all" | "overdue" | "by-priority";
 
@@ -75,11 +71,7 @@ function StatCard({ label, count, icon, iconBg }: StatCardProps) {
         <p className="mb-1 text-sm font-normal text-[#62748e]">{label}</p>
         <p className="text-2xl font-semibold text-[#0f172b]">{count}</p>
       </div>
-      <div
-        className={`flex size-12 items-center justify-center rounded-full ${iconBg}`}
-      >
-        {icon}
-      </div>
+      <div className={`flex size-12 items-center justify-center rounded-full ${iconBg}`}>{icon}</div>
     </div>
   );
 }
@@ -95,18 +87,12 @@ function TaskRow({ task, onClick }: TaskRowProps) {
   const overdue = isOverdue(task);
 
   return (
-    <tr
-      onClick={onClick}
-      className="cursor-pointer border-b border-[#f1f5f9] transition-colors hover:bg-[#f8fafc]"
-    >
+    <tr onClick={onClick} className="cursor-pointer border-b border-[#f1f5f9] transition-colors hover:bg-[#f8fafc]">
       <td className="px-3 py-2.5">
         <span className="text-sm font-medium text-[#374151]">{taskCode}</span>
       </td>
       <td className="px-3 py-2.5">
-        <span
-          className="block max-w-[520px] truncate text-sm text-[#0f172b]"
-          title={task.title}
-        >
+        <span className="block max-w-[520px] truncate text-sm text-[#0f172b]" title={task.title}>
           {task.title}
         </span>
       </td>
@@ -127,9 +113,7 @@ function TaskRow({ task, onClick }: TaskRowProps) {
       </td>
       <td className="px-3 py-2.5">
         {task.dueDate ? (
-          <span
-            className={`flex items-center gap-1 text-sm ${overdue ? "text-red-500" : "text-[#62748e]"}`}
-          >
+          <span className={`flex items-center gap-1 text-sm ${overdue ? "text-red-500" : "text-[#62748e]"}`}>
             <CalendarIcon />
             {formatDate(task.dueDate)}
           </span>
@@ -138,38 +122,18 @@ function TaskRow({ task, onClick }: TaskRowProps) {
         )}
       </td>
       <td className="px-3 py-2.5 text-right">
-        <span className="text-sm text-[#62748e]">
-          {task.storyPoint != null ? task.storyPoint : "—"}
-        </span>
+        <span className="text-sm text-[#62748e]">{task.storyPoint != null ? task.storyPoint : "—"}</span>
       </td>
     </tr>
   );
 }
 
 // ── Tasks table ───────────────────────────────────────────────────────────────
-const TABLE_HEADERS = [
-  "Ключ",
-  "Назва",
-  "Проєкт",
-  "Пріоритет",
-  "Статус",
-  "Дедлайн",
-  "SP",
-];
+const TABLE_HEADERS = ["Ключ", "Назва", "Проєкт", "Пріоритет", "Статус", "Дедлайн", "SP"];
 
-function TasksTable({
-  tasks,
-  onRowClick,
-}: {
-  tasks: TaskDto[];
-  onRowClick: (t: TaskDto) => void;
-}) {
+function TasksTable({ tasks, onRowClick }: { tasks: TaskDto[]; onRowClick: (t: TaskDto) => void }) {
   if (tasks.length === 0) {
-    return (
-      <div className="py-12 text-center text-sm text-[#62748e]">
-        Задачі не знайдено
-      </div>
-    );
+    return <div className="py-12 text-center text-sm text-[#62748e]">Задачі не знайдено</div>;
   }
   return (
     <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white">
@@ -197,13 +161,7 @@ function TasksTable({
 }
 
 // ── By-priority view ──────────────────────────────────────────────────────────
-function ByPriorityView({
-  tasks,
-  onRowClick,
-}: {
-  tasks: TaskDto[];
-  onRowClick: (t: TaskDto) => void;
-}) {
+function ByPriorityView({ tasks, onRowClick }: { tasks: TaskDto[]; onRowClick: (t: TaskDto) => void }) {
   const groups = useMemo(() => {
     const map = new Map<ApiTaskPriority, TaskDto[]>();
     for (const p of PRIORITY_ORDER) map.set(p, []);
@@ -218,11 +176,7 @@ function ByPriorityView({
   }, [tasks]);
 
   if (groups.length === 0) {
-    return (
-      <div className="py-12 text-center text-sm text-[#62748e]">
-        Задачі не знайдено
-      </div>
-    );
+    return <div className="py-12 text-center text-sm text-[#62748e]">Задачі не знайдено</div>;
   }
 
   return (
@@ -231,9 +185,7 @@ function ByPriorityView({
         <div key={priority}>
           <div className="mb-3 flex items-center gap-2">
             <Badge variant={priority as any} />
-            <span className="text-base font-semibold text-[#62748e]">
-              ({groupTasks.length})
-            </span>
+            <span className="text-base font-semibold text-[#62748e]">({groupTasks.length})</span>
           </div>
           <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white">
             <table className="w-full text-left">
@@ -269,19 +221,14 @@ export default function MyTasks() {
 
   const [tab, setTab] = useState<TabId>("all");
   const [statusFilter, setStatusFilter] = useState<ApiTaskStatus | "">("");
-  const [priorityFilter, setPriorityFilter] = useState<ApiTaskPriority | "">(
-    "",
-  );
+  const [priorityFilter, setPriorityFilter] = useState<ApiTaskPriority | "">("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [priorityOpen, setPriorityOpen] = useState(false);
 
   const closeStatus = useCallback(() => setStatusOpen(false), []);
   const closePriority = useCallback(() => setPriorityOpen(false), []);
   const statusRef = useClickOutside<HTMLDivElement>(closeStatus, statusOpen);
-  const priorityRef = useClickOutside<HTMLDivElement>(
-    closePriority,
-    priorityOpen,
-  );
+  const priorityRef = useClickOutside<HTMLDivElement>(closePriority, priorityOpen);
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-tasks", user?.id],
@@ -299,7 +246,6 @@ export default function MyTasks() {
     });
   }, [allMyTasks, statusFilter, priorityFilter]);
 
-  const now = new Date();
   const overdueTasks = filtered.filter(isOverdue);
 
   const displayTasks = useMemo(() => {
@@ -309,18 +255,12 @@ export default function MyTasks() {
 
   // Stats (from all tasks, no filter)
   const todoCount = allMyTasks.filter((t) => t.status === "todo").length;
-  const inProgressCount = allMyTasks.filter(
-    (t) => t.status === "in_progress",
-  ).length;
+  const inProgressCount = allMyTasks.filter((t) => t.status === "in_progress").length;
   const overdueCount = allMyTasks.filter(isOverdue).length;
   const doneCount = allMyTasks.filter((t) => t.status === "done").length;
 
-  const statusLabel =
-    STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ??
-    "Всі статуси";
-  const priorityLabel =
-    PRIORITY_OPTIONS.find((o) => o.value === priorityFilter)?.label ??
-    "Всі пріоритети";
+  const statusLabel = STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "Всі статуси";
+  const priorityLabel = PRIORITY_OPTIONS.find((o) => o.value === priorityFilter)?.label ?? "Всі пріоритети";
 
   const TABS: { id: TabId; label: string; count?: number }[] = [
     { id: "all", label: "Всі задачі", count: filtered.length },
@@ -332,12 +272,8 @@ export default function MyTasks() {
     <DashboardLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold leading-9 text-[#0f172b]">
-          Мої задачі
-        </h1>
-        <p className="mt-1 text-sm text-[#62748e]">
-          Всі задачі, призначені вам
-        </p>
+        <h1 className="text-2xl font-semibold leading-9 text-[#0f172b]">Мої задачі</h1>
+        <p className="mt-1 text-sm text-[#62748e]">Всі задачі, призначені вам</p>
       </div>
 
       {/* Stat cards */}
@@ -347,13 +283,7 @@ export default function MyTasks() {
           count={todoCount}
           iconBg="bg-[#f1f5f9]"
           icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M9 11l2 2 4-4M5 5h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
                 stroke="#62748e"
@@ -369,26 +299,9 @@ export default function MyTasks() {
           count={inProgressCount}
           iconBg="bg-[#eff6ff]"
           icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                stroke="#3b82f6"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M12 8v4l3 3"
-                stroke="#3b82f6"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8" stroke="#3b82f6" strokeWidth="1.5" />
+              <path d="M12 8v4l3 3" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           }
         />
@@ -397,26 +310,9 @@ export default function MyTasks() {
           count={overdueCount}
           iconBg="bg-[#fef2f2]"
           icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                stroke="#ef4444"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M12 8v4M12 16h.01"
-                stroke="#ef4444"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8" stroke="#ef4444" strokeWidth="1.5" />
+              <path d="M12 8v4M12 16h.01" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           }
         />
@@ -425,20 +321,8 @@ export default function MyTasks() {
           count={doneCount}
           iconBg="bg-[#f0fdf4]"
           icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                stroke="#22c55e"
-                strokeWidth="1.5"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8" stroke="#22c55e" strokeWidth="1.5" />
               <path
                 d="M8.5 12l2.5 2.5 5-5"
                 stroke="#22c55e"
@@ -513,9 +397,7 @@ export default function MyTasks() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              tab === t.id
-                ? "bg-white text-[#0f172b] shadow-sm"
-                : "text-[#62748e] hover:text-[#0f172b]"
+              tab === t.id ? "bg-white text-[#0f172b] shadow-sm" : "text-[#62748e] hover:text-[#0f172b]"
             }`}
           >
             {t.label}
@@ -526,19 +408,11 @@ export default function MyTasks() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="py-12 text-center text-sm text-[#62748e]">
-          Завантаження…
-        </div>
+        <div className="py-12 text-center text-sm text-[#62748e]">Завантаження…</div>
       ) : tab === "by-priority" ? (
-        <ByPriorityView
-          tasks={filtered}
-          onRowClick={(t) => navigate(`/board/${t.id}`)}
-        />
+        <ByPriorityView tasks={filtered} onRowClick={(t) => navigate(`/board/${t.id}`)} />
       ) : (
-        <TasksTable
-          tasks={displayTasks}
-          onRowClick={(t) => navigate(`/board/${t.id}`)}
-        />
+        <TasksTable tasks={displayTasks} onRowClick={(t) => navigate(`/board/${t.id}`)} />
       )}
     </DashboardLayout>
   );
